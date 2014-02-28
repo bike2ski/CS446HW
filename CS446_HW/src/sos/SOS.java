@@ -299,6 +299,7 @@ public class SOS implements CPU.TrapHandler
         {
         	m_currProcess.save(m_CPU);
         	createIdleProcess();
+        	return;
         }
         
         //If there is a running process save the registers
@@ -360,6 +361,8 @@ public class SOS implements CPU.TrapHandler
 		if (m_currProcess != null)
 			m_currProcess.save(m_CPU);
 		
+		ProcessControlBlock temp = new ProcessControlBlock(m_nextProcessID);
+		m_processes.add(temp);
 		// Set base and limit registers for CPU
 		m_CPU.setBASE(m_nextLoadPos);
 		
@@ -377,8 +380,6 @@ public class SOS implements CPU.TrapHandler
 		m_CPU.setSP(m_CPU.getBASE() + prog.getSize() + 1);
 		
 		//Add new process to process vector and make current process
-		ProcessControlBlock temp = new ProcessControlBlock(m_nextProcessID);
-		m_processes.add(temp);
 		m_currProcess = m_processes.get(m_processes.size() - 1);
 		debugPrintln("New program loaded into RAM at " + m_CPU.getBASE() + " with process ID " + m_currProcess.getProcessId());
 		
@@ -689,10 +690,20 @@ public class SOS implements CPU.TrapHandler
 				//Check if device readable
 				if(deviceIn.device.isReadable())
 				{
-					m_CPU.PUSH(address);
+					if(deviceIn.device.isAvailable())
+					{
+						m_CPU.PUSH(address);
 					
-					//Now block and wait for it to come back
-					m_currProcess.block(m_CPU, deviceIn.device, SYSCALL_READ, address);
+						//Now block and wait for it to come back
+						m_currProcess.block(m_CPU, deviceIn.device, SYSCALL_READ, address);
+					}
+					else
+					{
+						m_CPU.setPC(m_CPU.getPC() - CPU.INSTRSIZE);
+						m_CPU.PUSH(deviceID);
+						m_CPU.PUSH(address);
+						scheduleNewProcess();
+					}
 				}
 				else
 					m_CPU.PUSH(ERROR_DEVICE_NOT_READABLE);
@@ -726,11 +737,23 @@ public class SOS implements CPU.TrapHandler
 				//Check if device writeable
 				if(deviceIn.device.isWriteable())
 				{
-					//Write data to device
-					deviceIn.device.write(address, data);
+					if(deviceIn.device.isAvailable())
+					{
+						//Write data to device
+						deviceIn.device.write(address, data);
 					
-					//Block the process and wait for write to finish
-					m_currProcess.block(m_CPU, deviceIn.device, SYSCALL_WRITE, address);
+						//Block the process and wait for write to finish
+						m_currProcess.block(m_CPU, deviceIn.device, SYSCALL_WRITE, address);
+					}
+					else
+					{
+						//Set PC to rexecute trap instruction and push all data back to stack
+						m_CPU.setPC(m_CPU.getPC() - CPU.INSTRSIZE);
+						m_CPU.PUSH(deviceID);
+						m_CPU.PUSH(address);
+						m_CPU.PUSH(data);
+						scheduleNewProcess();
+					}
 				}
 				else
 					m_CPU.PUSH(ERROR_DEVICE_NOT_WRITEABLE);
@@ -932,6 +955,7 @@ public class SOS implements CPU.TrapHandler
             {
                 this.registers[i] = regs[i];
             }
+            debugPrintln(m_currProcess + " saved");
         }//save
          
         /**
