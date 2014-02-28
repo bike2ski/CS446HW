@@ -90,12 +90,14 @@ public class SOS implements CPU.TrapHandler
 	public static final int SUCCESS_CODE = 0;
 	
 	// These constants define the error code values from syscalls
+	public static final int ERROR_NO_PROCESSES = 0;
 	public static final int ERROR_DEVICE_EXISTENCE = -2;
 	public static final int ERROR_DEVICE_NOT_USABLE = -3;
 	public static final int ERROR_DEVICE_OPEN = -4;
 	public static final int ERROR_DEVICE_NOT_OPEN = -5;
-	public static final int ERROR_READ_ONLY_DEVICE = -6;
-	public static final int ERROR_WRITE_ONLY_DEVICE = -7;
+	public static final int ERROR_DEVICE_NOT_READABLE = -6;
+	public static final int ERROR_DEVICE_NOT_WRITEABLE = -7;
+	public static final int ERROR_NEED_MORE_SPACE = 0;
 	
     /**This process is used as the idle process' id*/
     public static final int IDLE_PROC_ID    = 999;  
@@ -241,16 +243,10 @@ public class SOS implements CPU.TrapHandler
      */
     public void removeCurrentProcess()
     {
-		//save the registers of the current process
-        m_currProcess.save(m_CPU);
-		
-        // Remove the current process
         m_processes.remove(m_currProcess);
         debugPrintln("Program Removed from RAM " + m_currProcess.getProcessId() + " at " + m_CPU.getBASE());
-		
-		//set current process to null and arrange for a new current process to be selected
-        m_currProcess = null;
-        //scheduleNewProcess();
+        
+        scheduleNewProcess();
     }//removeCurrentProcess
 
     /**
@@ -290,31 +286,28 @@ public class SOS implements CPU.TrapHandler
      */
     public void scheduleNewProcess()
     {
-    	printProcessTable();
-        // If there is a process running we want to make sure to save the registers
-    	if(m_currProcess != null)
-        {
-        	m_currProcess.save(m_CPU);
-        	debugPrintln("Process Saved");
-        }
-        
     	// Check to see if there are no more processes
         if(m_processes.size() == 0)
         {
         	debugPrintln("Schedule new process syscall exit");
-        	SYSCALL_EXIT();
+        	System.exit(ERROR_NO_PROCESSES);
         }
-        //Check to see if all processes are blocked
-        else if(getRandomProcess() == null)
+
+        //  Check for processes
+        ProcessControlBlock process = getRandomProcess();
+        if(process == null)
         {
-        	createIdleProcess(); //HERE THERE BE DRAGONS?
+        	m_currProcess.save(m_CPU);
+        	createIdleProcess();
         }
-        else
-        {
-        	//Select a new process and restore its registers into the CPU
-        	m_currProcess = getRandomProcess();
-        	m_currProcess.restore(m_CPU);
-        }
+        
+        //If there is a running process save the registers
+    	if(m_currProcess != null)
+        	m_currProcess.save(m_CPU);
+        
+    	//Set the new process and restore its registers
+    	m_currProcess = process;
+        m_currProcess.restore(m_CPU);
         debugPrintln("Switched to process " + m_currProcess.getProcessId());
     }//scheduleNewProcess
 
@@ -353,50 +346,43 @@ public class SOS implements CPU.TrapHandler
 	 */
 	public void createProcess(Program prog, int allocSize) 
 	{
+		// Check to make sure the size of the new program doesn't exceed RAM size
+		if ((m_nextLoadPos + allocSize) >= m_RAM.getSize())
+		{
+			debugPrintln("ERROR: not sufficient space in RAM");
+			System.exit(ERROR_NEED_MORE_SPACE);
+		}
+		
 		// Save the exported program into array
 		int[] program = prog.export();
+		
 		// Set base to next available position in RAM
 		if (m_currProcess != null)
-		{
 			m_currProcess.save(m_CPU);
-		}
-		
-		if (prog.getSize() > allocSize) 
-		{
-			// Arbitrarily triple program size to increase allocSize
-			// To fit program.
-			allocSize = prog.getSize() * 3;
-		}
-		// Add a new process control block to the vector of processes
-		ProcessControlBlock temp = new ProcessControlBlock(m_nextProcessID);
-		
-		// Increment process ID num.ber for next process
-		++m_nextProcessID;
-		m_processes.add(temp);
 		
 		// Set base and limit registers for CPU
 		m_CPU.setBASE(m_nextLoadPos);
-		// Check to make sure the size of the new program doesn't exceed RAM size
-		if ((m_CPU.getBASE() + allocSize) > m_RAM.getSize())
-		{
-			debugPrintln("ERROR: not sufficient space in RAM");
-			SYSCALL_EXIT();
-		}
+		
 		m_CPU.setLIM(allocSize);
+
 		//set new load position for next program
-		m_CPU.setPC(m_CPU.getBASE());
-		m_CPU.setSP(m_CPU.getBASE() + prog.getSize() + 1);
-		m_nextLoadPos = (m_CPU.getBASE() + allocSize + 1);
+		m_nextLoadPos = (m_CPU.getLIM() + 1);
+		++m_nextProcessID;
 		
 		// Load program into memory
 		for (int i = 0; i < prog.getSize(); i++) 
-		{
 			m_RAM.write(i + m_CPU.getBASE(), program[i]);
-		}
 		
-		//Set m_currProcess to point at new process
-		m_currProcess = temp;
+		m_CPU.setPC(m_CPU.getBASE());
+		m_CPU.setSP(m_CPU.getBASE() + prog.getSize() + 1);
+		
+		//Add new process to process vector and make current process
+		ProcessControlBlock temp = new ProcessControlBlock(m_nextProcessID);
+		m_processes.add(temp);
+		m_currProcess = m_processes.get(m_processes.size() - 1);
 		debugPrintln("New program loaded into RAM at " + m_CPU.getBASE() + " with process ID " + m_currProcess.getProcessId());
+		
+
 	}// createProcess
 
 	/**
@@ -480,27 +466,6 @@ public class SOS implements CPU.TrapHandler
 		}
 	}//systemCall
 	
-	/**
-	 * deviceExists
-	 * 
-	 * Checks to see if a device with a given id actually exists
-	 * 
-	 * @param id of the device in question
-	 * @return whether or not the device actually exists
-	 */
-	private boolean deviceExists(int id)
-	{
-		int i = 0;
-		while(i < m_devices.size())
-		{
-			if((m_devices.elementAt(i)).getId() == id)
-			{
-				return true;
-			}
-			i++;
-		}
-		return false;
-	}//deviceExists
 	
 	/**
 	 * deviceNotUsable
@@ -534,18 +499,11 @@ public class SOS implements CPU.TrapHandler
 	 */
 	private DeviceInfo findDevice(int id)
 	{
-		int i = 0; //iterator
-		int x = 0; //index of device
-		//Loop through the vector to find an id that matches the id given as parameter
-		while(i < m_devices.size())
-		{
-			if((m_devices.elementAt(i)).getId() == id)
-			{
-				x=i;
-			}
-			i++;
-		}
-		return m_devices.elementAt(x);
+		for(DeviceInfo device : m_devices)
+			if(device.getId() == id)
+				return device;
+		return null;
+		
 	}//findDevice
 	
 	/*
@@ -558,22 +516,22 @@ public class SOS implements CPU.TrapHandler
 	public void interruptIOReadComplete(int devID, int addr, int data) {
 		//Find device
 		DeviceInfo wantedDevice = findDevice(devID);
-		Device blockedDev = wantedDevice.getDevice();
-		ProcessControlBlock waitingProc = selectBlockedProcess(blockedDev, SYSCALL_READ, addr);
-		//FIND THE RIGHT PROCESS!!!!
-		if(waitingProc != null)
+		
+		//Make sure the wanted device exists
+		if(wantedDevice.device != null)
 		{
-			int mySP = waitingProc.getRegisterValue(m_CPU.SP);
-			//Increment SP so we can write the data to it
-			mySP++; 
-			waitingProc.setRegisterValue(m_CPU.SP, mySP);
-			m_RAM.write(mySP, data);
-			//Set stack pointer to new value and then write the success code
-			mySP++;
-			waitingProc.setRegisterValue(m_CPU.SP, mySP);
-			m_RAM.write(mySP, SUCCESS_CODE);
+			// Find the waiting process and unblock it
+			ProcessControlBlock waitingProc = selectBlockedProcess(wantedDevice.device, SYSCALL_READ, addr);
 			waitingProc.unblock();
+			
+			//Push new data and success code to stack
+			pushToNotCurrentStack(waitingProc, data);
+			pushToNotCurrentStack(waitingProc, SUCCESS_CODE);
 			debugPrintln(waitingProc + " moved to ready state");
+		}
+		else
+		{
+			m_CPU.PUSH(ERROR_DEVICE_EXISTENCE);
 		}
 	}//InterrruptIOReadComplete
 
@@ -581,20 +539,41 @@ public class SOS implements CPU.TrapHandler
 	public void interruptIOWriteComplete(int devID, int addr) {
 		//Find device
 		DeviceInfo wantedDevice = findDevice(devID);
-		Device blockedDev = wantedDevice.getDevice();
-		ProcessControlBlock waitingProc = selectBlockedProcess(blockedDev, SYSCALL_WRITE, addr);
+		
 		//PLEEZE BE NOT EMPTY
-		if(waitingProc != null)
+		if(wantedDevice.device != null)
 		{
-			int mySP = waitingProc.getRegisterValue(m_CPU.SP);
-			//Set the SP to the next value and then write to that
-			mySP++;
-			waitingProc.setRegisterValue(m_CPU.SP, mySP);
-			m_RAM.write(mySP, SUCCESS_CODE);
+			//Find waiting process and unblock
+			ProcessControlBlock waitingProc = selectBlockedProcess(wantedDevice.device, SYSCALL_WRITE, addr);
 			waitingProc.unblock();
+			
+			pushToNotCurrentStack(waitingProc, SUCCESS_CODE);
 			debugPrintln(waitingProc + " moved to ready state");
 		}
+		else
+			m_CPU.PUSH(ERROR_DEVICE_EXISTENCE);
 	}//interruptIOWriteComplete
+	
+	/**
+	 * pushToNotCurrentStack
+	 * 
+	 * Pushes data to the RAM if it is not the current process' stack that should be pushed to
+	 * 
+	 * @param pcb The process whose stack we are looking for
+	 * @param data the information being pushed to the stack
+	 */
+	public void pushToNotCurrentStack(ProcessControlBlock pcb, int data)
+	{
+		int sp = pcb.getRegisterValue(m_CPU.SP);
+		
+		//Check to see if the SP is valid
+		if(sp > pcb.getRegisterValue(m_CPU.BASE))
+		{
+			//Set the SP to new value and write the data
+			pcb.setRegisterValue(m_CPU.SP, sp+1);
+			m_RAM.write(sp+1, data);
+		}
+	}
 	
 	/**
 	 * SYSCALL_EXIT
@@ -603,20 +582,7 @@ public class SOS implements CPU.TrapHandler
 	 */
 	private void SYSCALL_EXIT() 
 	{
-		if (m_currProcess != null)
-		{
-			removeCurrentProcess();
-			scheduleNewProcess();
-		}
-		else if (m_processes.size() == 0)
-		{
-			debugPrintln("No more processes to load, exiting simulation.");
-			System.exit(0);
-		}
-		else
-		{
-			scheduleNewProcess();
-		}
+		removeCurrentProcess();
 	}
 
 	/**
@@ -626,7 +592,7 @@ public class SOS implements CPU.TrapHandler
 	 */
 	private void SYSCALL_OUTPUT() 
 	{
-		System.out.println("OUTPUT: " + m_CPU.POP());
+		System.out.println("\nOUTPUT: " + m_CPU.POP());
 	}
 
 	/**
@@ -647,33 +613,28 @@ public class SOS implements CPU.TrapHandler
 	private void syscallOpen()
 	{
 		int deviceID = m_CPU.POP();
+		
 		// Check to see that device exists
-		if(!deviceExists(deviceID))
+		DeviceInfo deviceIn = findDevice(deviceID);
+		if(deviceIn != null)
 		{
+			//Check to see if its already open
+			if(!deviceIn.procs.contains(m_currProcess))
+			{
+				//Check to make sure device shareable or unused
+				if(deviceIn.unused() || (deviceIn.procs.size() > 0 && deviceIn.device.isSharable()))
+				{
+					deviceIn.procs.add(m_currProcess);
+					m_CPU.PUSH(SUCCESS_CODE);
+				}
+				else
+					m_currProcess.block(m_CPU, deviceIn.device, SYSCALL_OPEN, -1);
+			}
+			else
+				 m_CPU.PUSH(ERROR_DEVICE_OPEN);
+		}
+		else
 			m_CPU.PUSH(ERROR_DEVICE_EXISTENCE);
-			return;
-		}
-		// Check to see if the device is already in use/sharable
-		if(deviceNotUsable(deviceID))
-		{
-			//Block current process and start a different process
-			DeviceInfo currDeviceInfo = findDevice(deviceID);
-			Device currDevice = currDeviceInfo.getDevice();
-			m_currProcess.block(m_CPU, currDevice, SYSCALL_OPEN, 0);
-			scheduleNewProcess();
-			return;
-		}
-		// Check if device is already open
-		if((findDevice(deviceID)).containsProcess(m_currProcess))
-		{
-			m_CPU.PUSH(ERROR_DEVICE_OPEN);
-			return;
-		}
-		//retrieve the deviceInfo given the deviceID
-		DeviceInfo currDeviceInfo = findDevice(deviceID);
-		currDeviceInfo.addProcess(m_currProcess);
-		m_CPU.PUSH(SUCCESS_CODE);
-		return;
 	}//syscallOpen
 	
 	/**
@@ -686,27 +647,25 @@ public class SOS implements CPU.TrapHandler
 		int deviceID = m_CPU.POP();
 		
 		// Check for device existence
-		if(!deviceExists(deviceID))
+		DeviceInfo deviceIn = findDevice(deviceID);
+		if(deviceIn != null)
 		{
+			//Check if device open
+			if(deviceIn.procs.contains(m_currProcess))
+			{
+				m_CPU.PUSH(SUCCESS_CODE);
+				deviceIn.procs.remove(m_currProcess);
+				
+				//Find out if there is another process waiting for this device and unblock it if yes
+				ProcessControlBlock waitingProc = selectBlockedProcess(deviceIn.device, SYSCALL_OPEN, -1);
+				if(waitingProc != null)
+					waitingProc.unblock();
+			}
+			else
+				m_CPU.PUSH(ERROR_DEVICE_NOT_OPEN);
+		}
+		else
 			m_CPU.PUSH(ERROR_DEVICE_EXISTENCE);
-			return;
-		}
-		//If the device is currently not open, push error code
-		if(!(findDevice(deviceID)).containsProcess(m_currProcess))
-		{
-			m_CPU.PUSH(ERROR_DEVICE_NOT_OPEN);
-			return;
-		}
-		DeviceInfo currDeviceInfo = findDevice(deviceID);
-		currDeviceInfo.removeProcess(m_currProcess);
-		Device curDevice = currDeviceInfo.getDevice();
-		ProcessControlBlock blockedProc = selectBlockedProcess(curDevice, SYSCALL_OPEN, 0);
-		if (blockedProc != null)
-		{
-			blockedProc.unblock();
-			debugPrintln("Process " + blockedProc + " moved to ready state");
-		}
-		m_CPU.PUSH(SUCCESS_CODE);
 	}//syscallClose
 	
 	/**
@@ -719,36 +678,30 @@ public class SOS implements CPU.TrapHandler
 		// get necessary information from the stack
 		int address = m_CPU.POP();
 		int deviceID = m_CPU.POP();
-		//Check to see if device exists
-		if(!deviceExists(deviceID))
+		
+		//Check for device existence
+		DeviceInfo deviceIn = findDevice(deviceID);
+		if(deviceIn != null)
 		{
+			//Check to see if device is open
+			if(deviceIn.procs.contains(m_currProcess))
+			{
+				//Check if device readable
+				if(deviceIn.device.isReadable())
+				{
+					m_CPU.PUSH(address);
+					
+					//Now block and wait for it to come back
+					m_currProcess.block(m_CPU, deviceIn.device, SYSCALL_READ, address);
+				}
+				else
+					m_CPU.PUSH(ERROR_DEVICE_NOT_READABLE);
+			}
+			else
+				m_CPU.PUSH(ERROR_DEVICE_NOT_OPEN);
+		}
+		else
 			m_CPU.PUSH(ERROR_DEVICE_EXISTENCE);
-			return;
-		}
-		//If the device is currently not open, push error code
-		if(!(findDevice(deviceID)).containsProcess(m_currProcess))
-		{
-			m_CPU.PUSH(ERROR_DEVICE_NOT_OPEN);
-			return;
-		}
-		DeviceInfo currDeviceInfo = findDevice(deviceID);
-		Device currDevice = currDeviceInfo.getDevice();
-		// Check to see if device is readable
-		if(!currDevice.isReadable())
-		{
-			m_CPU.PUSH(ERROR_WRITE_ONLY_DEVICE);
-			return;
-		}
-		if(!currDevice.isAvailable())
-		{
-			m_currProcess.setRegisterValue(m_CPU.PC, m_CPU.PC - m_CPU.INSTRSIZE);
-			scheduleNewProcess();
-			return;
-		}
-		m_CPU.PUSH(currDevice.read(address));
-		//Block current process to wait for IO
-		m_currProcess.block(m_CPU, currDevice, SYSCALL_READ, address);
-		scheduleNewProcess();
 	}//syscallRead
 	
 	/**
@@ -763,35 +716,30 @@ public class SOS implements CPU.TrapHandler
 		int address = m_CPU.POP();
 		int deviceID = m_CPU.POP();
 		
-		if(!deviceExists(deviceID))
+		//Check for device existence
+		DeviceInfo deviceIn = findDevice(deviceID);
+		if(deviceIn != null)
 		{
+			//Check if device open
+			if(deviceIn.procs.contains(m_currProcess))
+			{
+				//Check if device writeable
+				if(deviceIn.device.isWriteable())
+				{
+					//Write data to device
+					deviceIn.device.write(address, data);
+					
+					//Block the process and wait for write to finish
+					m_currProcess.block(m_CPU, deviceIn.device, SYSCALL_WRITE, address);
+				}
+				else
+					m_CPU.PUSH(ERROR_DEVICE_NOT_WRITEABLE);
+			}
+			else
+				m_CPU.PUSH(ERROR_DEVICE_NOT_OPEN);
+		}
+		else
 			m_CPU.PUSH(ERROR_DEVICE_EXISTENCE);
-			return;
-		}
-		
-		//If the device is currently not open, push error code
-		if(!(findDevice(deviceID)).containsProcess(m_currProcess))
-		{
-			m_CPU.PUSH(ERROR_DEVICE_NOT_OPEN);
-			return;
-		}	
-		DeviceInfo currDeviceInfo = findDevice(deviceID);
-		Device currDevice = currDeviceInfo.getDevice();
-		if(!currDevice.isWriteable())
-		{
-			m_CPU.PUSH(ERROR_READ_ONLY_DEVICE);
-			return;
-		}
-		if(!currDevice.isAvailable())
-		{
-			m_currProcess.setRegisterValue(m_CPU.PC, m_CPU.PC - m_CPU.INSTRSIZE);
-			scheduleNewProcess();
-			debugPrintln("Checking for device availability");
-			return;
-		}
-		currDevice.write(address, data);
-		m_currProcess.block(m_CPU, currDevice, SYSCALL_WRITE, address);
-		scheduleNewProcess();
 	}//syscallWrite
 
 	 /**
@@ -870,7 +818,7 @@ public class SOS implements CPU.TrapHandler
 		System.out.println("OUTPUT: " + m_CPU.POP());
 		System.out.println("OUTPUT: " + m_CPU.POP());
 		System.out.println("OUTPUT: " + m_CPU.POP());
-		System.exit(0);
+		SYSCALL_EXIT();
 	}//SYSCALL_COREDUMP
 	
 

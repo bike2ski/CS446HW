@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<workbench progressCount="13" version="2.0">
+<workbench progressCount="8" version="2.0">
 <workbenchAdvisor/>
-<window height="743" width="1024" x="0" y="0">
+<window height="743" maximized="true" width="1024" x="0" y="0">
 <fastViewData fastViewLocation="1024"/>
 <perspectiveBar>
 <itemSize x="160"/>
@@ -11,32 +11,62 @@
 <coolItem id="org.eclipse.ui.workbench.file" itemType="typeToolBarContribution" x="148" y="34"/>
 <coolItem id="additions" itemType="typeGroupMarker"/>
 <coolItem id="org.eclipse.debug.ui.launch.toolbar" itemType="typeToolBarContribution" x="-1" y="-1"/>
-<coolItem id="org.eclipse.debug.ui.launchActionSet" itemType="typeToolBarContribution" x="64" y="34"/>
-<coolItem id="org.eclipse.debug.ui.main.toolbar" itemType="typeToolBarContribution" x="-1" y="-1"/>
-<coolItem id="org.eclipse.search.searchActionSet" itemType="typeToolBarContribution" x="64" y="34"/>
+<coolItem id="org.eclipse.debug.ui.launchActionSet" itemType="typeToolBarContribution" x="160" y="34"/>
+<coolItem id="org.eclipse.debug.ui.main.toolbar" itemType="typeToolBarContribution" x="320" y="34"/>
+<coolItem id="org.eclipse.search.searchActionSet" itemType="typeToolBarContribution" x="92" y="34"/>
+<coolItem id="org.eclipse.ui.edit.text.actionSet.presentation" itemType="typeToolBarContribution" x="128" y="34"/>
 <coolItem id="group.nav" itemType="typeGroupMarker"/>
 <coolItem id="org.eclipse.ui.workbench.navigate" itemType="typeToolBarContribution" x="236" y="34"/>
 <coolItem id="group.editor" itemType="typeGroupMarker"/>
+<coolItem id="org.eclipse.jdt.ui.CompilationUnitEditor" itemType="typeToolBarContribution" x="-1" y="-1"/>
 <coolItem id="group.help" itemType="typeGroupMarker"/>
 <coolItem id="org.eclipse.ui.workbench.help" itemType="typeToolBarContribution" x="-1" y="-1"/>
 </coolbarLayout>
-<page aggregateWorkingSetId="Aggregate for window 1393541803808" focus="true" label="Workspace - Resource">
+<page aggregateWorkingSetId="Aggregate for window 1393541803808" focus="true" label="Workspace - Debug">
 <editors>
 <editorArea activeWorkbook="DefaultEditorWorkbook">
 <info part="DefaultEditorWorkbook">
 <folder appearance="1" expanded="2">
-<presentation id="org.eclipse.ui.presentations.WorkbenchPresentationFactory"/>
+<presentation id="org.eclipse.ui.presentations.WorkbenchPresentationFactory">
+<part id="0"/>
+<part id="1"/>
+<part id="2"/>
+</presentation>
 </folder>
 </info>
 </editorArea>
+<editor activePart="true" focus="true" id="org.eclipse.jdt.ui.CompilationUnitEditor" name="SOS.java" partName="SOS.java" path="/home/tyler/Documents/School/Junior Year/Spring/CS 446/CS446HW/CS446_HW/src/sos/SOS.java" title="SOS.java" tooltip="CS446_HW/src/sos/SOS.java" workbook="DefaultEditorWorkbook">
+<input factoryID="org.eclipse.ui.part.FileEditorInputFactory" path="/CS446_HW/src/sos/SOS.java"/>
+<editorState selectionHorizontalPixel="0" selectionLength="0" selectionOffset="20656" selectionTopPixel="12393"/>
+</editor>
+<editor id="org.eclipse.jdt.ui.CompilationUnitEditor" name="Sim.java" partName="Sim.java" path="/home/tyler/Documents/School/Junior Year/Spring/CS 446/CS446HW/CS446_HW/src/sos/Sim.java" title="Sim.java" tooltip="CS446_HW/src/sos/Sim.java" workbook="DefaultEditorWorkbook">
+<input factoryID="org.eclipse.ui.part.FileEditorInputFactory" path="/CS446_HW/src/sos/Sim.java"/>
+<editorState selectionHorizontalPixel="0" selectionLength="0" selectionOffset="3774" selectionTopPixel="2295"/>
+</editor>
+<editor id="org.eclipse.jdt.ui.CompilationUnitEditor" name="CPU.java" partName="CPU.java" path="/home/tyler/Documents/School/Junior Year/Spring/CS 446/CS446HW/CS446_HW/src/sos/CPU.java" title="CPU.java" tooltip="CS446_HW/src/sos/CPU.java" workbook="DefaultEditorWorkbook">
+<input factoryID="org.eclipse.ui.part.FileEditorInputFactory" path="/CS446_HW/src/sos/CPU.java"/>
+<editorState selectionHorizontalPixel="0" selectionLength="0" selectionOffset="11865" selectionTopPixel="6579"/>
+</editor>
 </editors>
 <views>
 <view id="org.eclipse.ui.navigator.ProjectExplorer" partName="Project Explorer">
 <viewState CommonNavigator.LINKING_ENABLED="0" org.eclipse.ui.navigator.resources.workingSets.showTopLevelWorkingSets="0"/>
 </view>
+<view id="org.eclipse.debug.ui.DebugView" partName="Debug">
+<viewState/>
+</view>
+<view id="org.eclipse.ui.console.ConsoleView" partName="Console">
+<viewState/>
+</view>
+<view id="org.eclipse.debug.ui.BreakpointView" partName="Breakpoints">
+<viewState/>
+</view>
+<view id="org.eclipse.debug.ui.VariableView" partName="Variables">
+<viewState/>
+</view>
 <view id="org.eclipse.ui.views.TaskList" partName="Tasks">
 <viewState PRIMARY_SORT_FIELD="org.eclipse.ui.ide.completionField" categoryGroup="none" markerContentGenerator="org.eclipse.ui.ide.tasksGenerator" partName="Tasks">
-<columnWidths org.eclipse.ui.ide.completionField="40" org.eclipse.ui.ide.descriptionField="300" org.eclipse.ui.ide.locationField="90" org.eclipse.ui.ide.markerType="90" org.eclipse.ui.ide.pathField="120" org.eclipse.ui.ide.priorityField="30" org.eclipse.ui.ide.resourceField="90"/>
+<columnWidths org.eclipse.ui.ide.completionField="40" org.eclipse.ui.ide.descriptionField="300" org.eclipse.ui.ide.locationField="90" org.eclipse.ui.ide.markerType="417" org.eclipse.ui.ide.pathField="120" org.eclipse.ui.ide.priorityField="30" org.eclipse.ui.ide.resourceField="90"/>
 <visible IMemento.internal.id="org.eclipse.ui.ide.completionField"/>
 <visible IMemento.internal.id="org.eclipse.ui.ide.priorityField"/>
 <visible IMemento.internal.id="org.eclipse.ui.ide.descriptionField"/>
@@ -50,7 +80,7 @@
 <viewState/>
 </view>
 </views>
-<perspectives activePart="org.eclipse.ui.navigator.ProjectExplorer" activePerspective="org.eclipse.ui.resourcePerspective">
+<perspectives activePart="org.eclipse.debug.ui.VariableView" activePerspective="org.eclipse.debug.ui.DebugPerspective">
 <perspective editorAreaTrimState="2" editorAreaVisible="1" fixed="0" version="0.016">
 <descriptor class="org.eclipse.ui.internal.ide.application.ResourcePerspective" id="org.eclipse.ui.resourcePerspective" label="Resource"/>
 <alwaysOnActionSet id="org.eclipse.ui.cheatsheets.actionSet"/>
@@ -82,9 +112,13 @@
 <hide_toolbar_item_id id="org.eclipse.jdt.ui.actions.OpenProjectWizard"/>
 <hide_toolbar_item_id id="org.eclipse.ui.edit.text.toggleShowSelectedElementOnly"/>
 <view id="org.eclipse.ui.navigator.ProjectExplorer"/>
-<view id="org.eclipse.ui.views.ContentOutline"/>
-<view id="org.eclipse.ui.views.TaskList"/>
-<fastViewBars/>
+<fastViewBars>
+<fastViewBar fastViewLocation="1024" id="bottomRight" orientation="256" selectedTabId="org.eclipse.ui.views.TaskList" style="0">
+<fastViews>
+<view id="org.eclipse.ui.views.TaskList" ratio="0.3"/>
+</fastViews>
+</fastViewBar>
+</fastViewBars>
 <layout>
 <mainWindow>
 <info folder="true" part="topLeft">
@@ -108,15 +142,102 @@
 </info>
 <info part="org.eclipse.ui.editorss" ratio="0.25940594" ratioLeft="262" ratioRight="748" relationship="2" relative="topLeft"/>
 <info folder="true" part="bottomRight" ratio="0.65841585" ratioLeft="399" ratioRight="207" relationship="4" relative="org.eclipse.ui.editorss">
-<folder activePageID="org.eclipse.ui.views.TaskList" appearance="2" expanded="2">
-<page content="org.eclipse.ui.views.TaskList" label="Tasks"/>
+<folder appearance="2" expanded="0">
+<page content="org.eclipse.ui.views.TaskList" label="LabelNotFound"/>
 <page content="org.eclipse.team.ui.GenericHistoryView" label="LabelNotFound"/>
+<presentation id="org.eclipse.ui.presentations.WorkbenchPresentationFactory"/>
+</folder>
+</info>
+<info folder="true" part="org.eclipse.ui.internal.ViewStack@34b62fd9" ratio="0.57798165" ratioLeft="630" ratioRight="460" relationship="2" relative="org.eclipse.ui.editorss">
+<folder appearance="2" expanded="2">
+<page content="org.eclipse.ui.console.ConsoleView" label="LabelNotFound"/>
+<presentation id="org.eclipse.ui.presentations.WorkbenchPresentationFactory"/>
+</folder>
+</info>
+<info folder="true" part="bottomLeft" ratio="0.5" ratioLeft="303" ratioRight="303" relationship="4" relative="topLeft">
+<folder appearance="2" expanded="2">
+<page content="org.eclipse.ui.views.ContentOutline" label="LabelNotFound"/>
+<page content="org.eclipse.ant.ui.views.AntView" label="LabelNotFound"/>
+<presentation id="org.eclipse.ui.presentations.WorkbenchPresentationFactory"/>
+</folder>
+</info>
+</mainWindow>
+</layout>
+</perspective>
+<perspective editorAreaTrimState="2" editorAreaVisible="1" fixed="0" version="0.016">
+<descriptor class="org.eclipse.debug.internal.ui.DebugPerspectiveFactory" id="org.eclipse.debug.ui.DebugPerspective" label="Debug"/>
+<alwaysOnActionSet id="org.eclipse.ui.cheatsheets.actionSet"/>
+<alwaysOnActionSet id="org.eclipse.search.searchActionSet"/>
+<alwaysOnActionSet id="org.eclipse.ui.edit.text.actionSet.annotationNavigation"/>
+<alwaysOnActionSet id="org.eclipse.ui.edit.text.actionSet.navigation"/>
+<alwaysOnActionSet id="org.eclipse.ui.edit.text.actionSet.convertLineDelimitersTo"/>
+<alwaysOnActionSet id="org.eclipse.ui.externaltools.ExternalToolsSet"/>
+<alwaysOnActionSet id="org.eclipse.ui.actionSet.keyBindings"/>
+<alwaysOnActionSet id="org.eclipse.ui.actionSet.openFiles"/>
+<alwaysOnActionSet id="org.eclipse.debug.ui.launchActionSet"/>
+<alwaysOnActionSet id="org.eclipse.ui.NavigateActionSet"/>
+<alwaysOnActionSet id="org.eclipse.debug.ui.breakpointActionSet"/>
+<alwaysOnActionSet id="org.eclipse.jdt.debug.ui.JDTDebugActionSet"/>
+<alwaysOnActionSet id="org.eclipse.jdt.ui.JavaActionSet"/>
+<alwaysOnActionSet id="org.eclipse.debug.ui.debugActionSet"/>
+<show_view_action id="org.eclipse.debug.ui.DebugView"/>
+<show_view_action id="org.eclipse.debug.ui.VariableView"/>
+<show_view_action id="org.eclipse.debug.ui.BreakpointView"/>
+<show_view_action id="org.eclipse.debug.ui.ExpressionView"/>
+<show_view_action id="org.eclipse.ui.views.ContentOutline"/>
+<show_view_action id="org.eclipse.ui.console.ConsoleView"/>
+<show_view_action id="org.eclipse.ui.views.TaskList"/>
+<show_view_action id="org.eclipse.ant.ui.views.AntView"/>
+<show_view_action id="org.eclipse.pde.runtime.LogView"/>
+<show_view_action id="org.eclipse.jdt.debug.ui.DisplayView"/>
+<perspective_action id="org.eclipse.jdt.ui.JavaPerspective"/>
+<perspective_action id="org.eclipse.jdt.ui.JavaBrowsingPerspective"/>
+<hide_toolbar_item_id id="org.eclipse.debug.ui.commands.RunToLine"/>
+<hide_toolbar_item_id id="org.eclipse.jdt.ui.actions.OpenProjectWizard"/>
+<hide_toolbar_item_id id="org.eclipse.ui.edit.text.toggleShowSelectedElementOnly"/>
+<view id="org.eclipse.ui.console.ConsoleView"/>
+<view id="org.eclipse.ui.views.TaskList"/>
+<view id="org.eclipse.debug.ui.DebugView"/>
+<view id="org.eclipse.debug.ui.VariableView"/>
+<view id="org.eclipse.debug.ui.BreakpointView"/>
+<view id="org.eclipse.ui.views.ContentOutline"/>
+<fastViewBars/>
+<layout>
+<mainWindow>
+<info folder="true" part="org.eclipse.debug.internal.ui.NavigatorFolderView">
+<folder activePageID="org.eclipse.debug.ui.DebugView" appearance="2" expanded="2">
+<page content="org.eclipse.debug.ui.DebugView" label="Debug"/>
+<page content="org.eclipse.ui.views.ResourceNavigator" label="LabelNotFound"/>
+<page content="org.eclipse.jdt.ui.PackageExplorer" label="LabelNotFound"/>
+<page content="org.eclipse.jdt.ui.TypeHierarchy" label="LabelNotFound"/>
 <presentation id="org.eclipse.ui.presentations.WorkbenchPresentationFactory">
 <part id="0"/>
 </presentation>
 </folder>
 </info>
-<info folder="true" part="bottomLeft" ratio="0.5" ratioLeft="303" ratioRight="303" relationship="4" relative="topLeft">
+<info folder="true" part="stickyFolderRight" ratio="0.7496318" ratioLeft="1018" ratioRight="340" relationship="2" relative="org.eclipse.debug.internal.ui.NavigatorFolderView">
+<folder appearance="2" expanded="2">
+<page content="org.eclipse.help.ui.HelpView" label="LabelNotFound"/>
+<page content="org.eclipse.ui.internal.introview" label="LabelNotFound"/>
+<page content="org.eclipse.ui.cheatsheets.views.CheatSheetView" label="LabelNotFound"/>
+</folder>
+</info>
+<info folder="true" part="org.eclipse.debug.internal.ui.ConsoleFolderView" ratio="0.75" ratioLeft="456" ratioRight="152" relationship="4" relative="org.eclipse.debug.internal.ui.NavigatorFolderView">
+<folder activePageID="org.eclipse.ui.console.ConsoleView" appearance="2" expanded="2">
+<page content="org.eclipse.ui.console.ConsoleView" label="Console"/>
+<page content="org.eclipse.ui.views.TaskList" label="Tasks"/>
+<page content="org.eclipse.ui.views.BookmarkView" label="LabelNotFound"/>
+<page content="org.eclipse.ui.views.PropertySheet" label="LabelNotFound"/>
+<page content="org.eclipse.jdt.debug.ui.DisplayView" label="LabelNotFound"/>
+<page content="org.eclipse.search.SearchResultView" label="LabelNotFound"/>
+<presentation id="org.eclipse.ui.presentations.WorkbenchPresentationFactory">
+<part id="0"/>
+<part id="1"/>
+</presentation>
+</folder>
+</info>
+<info part="org.eclipse.ui.editorss" ratio="0.5663717" ratioLeft="256" ratioRight="196" relationship="4" relative="org.eclipse.debug.internal.ui.NavigatorFolderView"/>
+<info folder="true" part="org.eclipse.debug.internal.ui.OutlineFolderView" ratio="0.7496318" ratioLeft="1018" ratioRight="340" relationship="2" relative="org.eclipse.ui.editorss">
 <folder activePageID="org.eclipse.ui.views.ContentOutline" appearance="2" expanded="2">
 <page content="org.eclipse.ui.views.ContentOutline" label="Outline"/>
 <page content="org.eclipse.ant.ui.views.AntView" label="LabelNotFound"/>
@@ -125,17 +246,190 @@
 </presentation>
 </folder>
 </info>
+<info folder="true" part="org.eclipse.debug.internal.ui.ToolsFolderView" ratio="0.5" ratioLeft="679" ratioRight="679" relationship="2" relative="org.eclipse.debug.internal.ui.NavigatorFolderView">
+<folder activePageID="org.eclipse.debug.ui.VariableView" appearance="2" expanded="2">
+<page content="org.eclipse.debug.ui.VariableView" label="Variables"/>
+<page content="org.eclipse.debug.ui.BreakpointView" label="Breakpoints"/>
+<page content="org.eclipse.debug.ui.ExpressionView" label="LabelNotFound"/>
+<page content="org.eclipse.debug.ui.RegisterView" label="LabelNotFound"/>
+<presentation id="org.eclipse.ui.presentations.WorkbenchPresentationFactory">
+<part id="0"/>
+<part id="1"/>
+</presentation>
+</folder>
+</info>
 </mainWindow>
 </layout>
 </perspective>
 </perspectives>
 <workingSets/>
-<navigationHistory/>
+<navigationHistory>
+<editors>
+<editor factoryID="org.eclipse.ui.part.FileEditorInputFactory" id="org.eclipse.jdt.ui.CompilationUnitEditor" path="/CS446_HW/src/sos/SOS.java"/>
+<editor factoryID="org.eclipse.ui.part.FileEditorInputFactory" id="org.eclipse.jdt.ui.CompilationUnitEditor" path="/CS446_HW/src/sos/Sim.java"/>
+</editors>
+<item historyLabel="SOS.java" index="0">
+<position info="not_deleted" x="11551" y="0"/>
+</item>
+<item historyLabel="SOS.java" index="0">
+<position info="not_deleted" x="11596" y="0"/>
+</item>
+<item historyLabel="SOS.java" index="0">
+<position info="not_deleted" x="11551" y="0"/>
+</item>
+<item historyLabel="SOS.java" index="0">
+<position info="not_deleted" x="11596" y="0"/>
+</item>
+<item historyLabel="SOS.java" index="0">
+<position info="not_deleted" x="11650" y="0"/>
+</item>
+<item historyLabel="SOS.java" index="0">
+<position info="not_deleted" x="11683" y="0"/>
+</item>
+<item historyLabel="SOS.java" index="0">
+<position info="not_deleted" x="11903" y="0"/>
+</item>
+<item historyLabel="SOS.java" index="0">
+<position info="not_deleted" x="11963" y="0"/>
+</item>
+<item historyLabel="SOS.java" index="0">
+<position info="not_deleted" x="10959" y="0"/>
+</item>
+<item historyLabel="SOS.java" index="0">
+<position info="not_deleted" x="10939" y="0"/>
+</item>
+<item historyLabel="SOS.java" index="0">
+<position info="not_deleted" x="11518" y="0"/>
+</item>
+<item historyLabel="SOS.java" index="0">
+<position info="not_deleted" x="10939" y="0"/>
+</item>
+<item historyLabel="SOS.java" index="0">
+<position info="not_deleted" x="11147" y="0"/>
+</item>
+<item historyLabel="SOS.java" index="0">
+<position info="not_deleted" x="11234" y="0"/>
+</item>
+<item historyLabel="SOS.java" index="0">
+<position info="not_deleted" x="11264" y="0"/>
+</item>
+<item historyLabel="SOS.java" index="0">
+<position info="not_deleted" x="11342" y="0"/>
+</item>
+<item historyLabel="SOS.java" index="0">
+<position info="not_deleted" x="11379" y="0"/>
+</item>
+<item historyLabel="SOS.java" index="0">
+<position info="not_deleted" x="11453" y="0"/>
+</item>
+<item historyLabel="SOS.java" index="0">
+<position info="not_deleted" x="11494" y="0"/>
+</item>
+<item historyLabel="SOS.java" index="0">
+<position info="not_deleted" x="11551" y="0"/>
+</item>
+<item historyLabel="SOS.java" index="0">
+<position info="not_deleted" x="11596" y="0"/>
+</item>
+<item historyLabel="SOS.java" index="0">
+<position info="not_deleted" x="11551" y="0"/>
+</item>
+<item historyLabel="SOS.java" index="0">
+<position info="not_deleted" x="11596" y="0"/>
+</item>
+<item historyLabel="SOS.java" index="0">
+<position info="not_deleted" x="11551" y="0"/>
+</item>
+<item historyLabel="SOS.java" index="0">
+<position info="not_deleted" x="11596" y="0"/>
+</item>
+<item historyLabel="SOS.java" index="0">
+<position info="not_deleted" x="11551" y="0"/>
+</item>
+<item historyLabel="SOS.java" index="0">
+<position info="not_deleted" x="11596" y="0"/>
+</item>
+<item historyLabel="SOS.java" index="0">
+<position info="not_deleted" x="11650" y="0"/>
+</item>
+<item historyLabel="SOS.java" index="0">
+<position info="not_deleted" x="11683" y="0"/>
+</item>
+<item historyLabel="SOS.java" index="0">
+<position info="not_deleted" x="11805" y="0"/>
+</item>
+<item historyLabel="SOS.java" index="0">
+<position info="not_deleted" x="11877" y="0"/>
+</item>
+<item historyLabel="SOS.java" index="0">
+<position info="not_deleted" x="11903" y="0"/>
+</item>
+<item historyLabel="SOS.java" index="0">
+<position info="not_deleted" x="11963" y="0"/>
+</item>
+<item historyLabel="SOS.java" index="0">
+<position info="not_deleted" x="11342" y="0"/>
+</item>
+<item historyLabel="SOS.java" index="0">
+<position info="not_deleted" x="11650" y="0"/>
+</item>
+<item historyLabel="SOS.java" index="0">
+<position info="not_deleted" x="11683" y="0"/>
+</item>
+<item historyLabel="SOS.java" index="0">
+<position info="not_deleted" x="11805" y="0"/>
+</item>
+<item historyLabel="SOS.java" index="0">
+<position info="not_deleted" x="11877" y="0"/>
+</item>
+<item historyLabel="SOS.java" index="0">
+<position info="not_deleted" x="11903" y="0"/>
+</item>
+<item historyLabel="SOS.java" index="0">
+<position info="not_deleted" x="11963" y="0"/>
+</item>
+<item historyLabel="SOS.java" index="0">
+<position info="not_deleted" x="12092" y="0"/>
+</item>
+<item historyLabel="Sim.java" index="1">
+<position info="not_deleted" x="3406" y="0"/>
+</item>
+<item historyLabel="Sim.java" index="1">
+<position info="not_deleted" x="3442" y="0"/>
+</item>
+<item historyLabel="Sim.java" index="1">
+<position info="not_deleted" x="3489" y="0"/>
+</item>
+<item historyLabel="Sim.java" index="1">
+<position info="not_deleted" x="3549" y="0"/>
+</item>
+<item historyLabel="Sim.java" index="1">
+<position info="not_deleted" x="3579" y="0"/>
+</item>
+<item historyLabel="Sim.java" index="1">
+<position info="not_deleted" x="3626" y="0"/>
+</item>
+<item historyLabel="Sim.java" index="1">
+<position info="not_deleted" x="3694" y="0"/>
+</item>
+<item historyLabel="Sim.java" index="1">
+<position info="not_deleted" x="3774" y="0"/>
+</item>
+<item active="true" historyLabel="SOS.java" index="0">
+<position info="not_deleted" x="20656" y="0"/>
+</item>
+</navigationHistory>
 <input factoryID="org.eclipse.ui.internal.model.ResourceFactory" path="/" type="8"/>
 </page>
 <workbenchWindowAdvisor/>
 <actionBarAdvisor/>
 <trimLayout>
+<trimArea IMemento.internal.id="16384">
+<trimItem IMemento.internal.id="topLeft"/>
+</trimArea>
+<trimArea IMemento.internal.id="131072">
+<trimItem IMemento.internal.id="org.eclipse.ui.editorss"/>
+</trimArea>
 <trimArea IMemento.internal.id="128">
 <trimItem IMemento.internal.id="org.eclipse.ui.internal.WorkbenchWindow.topBar"/>
 </trimArea>
@@ -143,8 +437,19 @@
 <trimItem IMemento.internal.id="org.eclise.ui.internal.FastViewBar"/>
 <trimItem IMemento.internal.id="org.eclipse.jface.action.StatusLineManager"/>
 <trimItem IMemento.internal.id="org.eclipse.ui.internal.progress.ProgressRegion"/>
+<trimItem IMemento.internal.id="bottomRight"/>
 </trimArea>
 </trimLayout>
 </window>
-<mruList/>
+<mruList>
+<file factoryID="org.eclipse.ui.part.FileEditorInputFactory" id="org.eclipse.jdt.ui.CompilationUnitEditor" name="CPU.java" tooltip="CS446_HW/src/sos/CPU.java">
+<persistable path="/CS446_HW/src/sos/CPU.java"/>
+</file>
+<file factoryID="org.eclipse.ui.part.FileEditorInputFactory" id="org.eclipse.jdt.ui.CompilationUnitEditor" name="Sim.java" tooltip="CS446_HW/src/sos/Sim.java">
+<persistable path="/CS446_HW/src/sos/Sim.java"/>
+</file>
+<file factoryID="org.eclipse.ui.part.FileEditorInputFactory" id="org.eclipse.jdt.ui.CompilationUnitEditor" name="SOS.java" tooltip="CS446_HW/src/sos/SOS.java">
+<persistable path="/CS446_HW/src/sos/SOS.java"/>
+</file>
+</mruList>
 </workbench>
