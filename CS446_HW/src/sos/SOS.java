@@ -382,8 +382,7 @@ public class SOS implements CPU.TrapHandler
 		//Add new process to process vector and make current process
 		m_currProcess = m_processes.get(m_processes.size() - 1);
 		debugPrintln("New program loaded into RAM at " + m_CPU.getBASE() + " with process ID " + m_currProcess.getProcessId());
-		
-
+		m_currProcess.toString();
 	}// createProcess
 
 	/**
@@ -515,6 +514,7 @@ public class SOS implements CPU.TrapHandler
 	
 	@Override
 	public void interruptIOReadComplete(int devID, int addr, int data) {
+		debugPrintln("Entering interruptIOREAD");
 		//Find device
 		DeviceInfo wantedDevice = findDevice(devID);
 		
@@ -538,6 +538,7 @@ public class SOS implements CPU.TrapHandler
 
 	@Override
 	public void interruptIOWriteComplete(int devID, int addr) {
+		debugPrintln("Entering interrruptIOWRITE");
 		//Find device
 		DeviceInfo wantedDevice = findDevice(devID);
 		
@@ -613,6 +614,7 @@ public class SOS implements CPU.TrapHandler
 	 */
 	private void syscallOpen()
 	{
+		debugPrintln("Entering syscallOpen");
 		int deviceID = m_CPU.POP();
 		
 		// Check to see that device exists
@@ -645,6 +647,7 @@ public class SOS implements CPU.TrapHandler
 	 */
 	private void syscallClose()
 	{
+		debugPrintln("Entering syscallClose");
 		int deviceID = m_CPU.POP();
 		
 		// Check for device existence
@@ -699,7 +702,7 @@ public class SOS implements CPU.TrapHandler
 					}
 					else
 					{
-						m_CPU.setPC(m_CPU.getPC() - CPU.INSTRSIZE);
+						m_CPU.setPC(m_CPU.getPC() - m_CPU.INSTRSIZE);
 						m_CPU.PUSH(deviceID);
 						m_CPU.PUSH(address);
 						scheduleNewProcess();
