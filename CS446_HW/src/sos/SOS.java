@@ -23,7 +23,7 @@ public class SOS implements CPU.TrapHandler
 	 * This flag causes the SOS to print lots of potentially helpful status
 	 * messages
 	 **/
-	public static final boolean m_verbose = false;
+	public static final boolean m_verbose = true;
 
 	/**
 	 * The CPU the operating system is managing.
@@ -496,7 +496,6 @@ public class SOS implements CPU.TrapHandler
 	 */
 	@Override
 	public void interruptIOReadComplete(int devID, int addr, int data) {
-		debugPrintln("Entering interruptIOREAD");
 		//Find device
 		DeviceInfo wantedDevice = findDevice(devID);
 		
@@ -535,7 +534,6 @@ public class SOS implements CPU.TrapHandler
 	 */
 	@Override
 	public void interruptIOWriteComplete(int devID, int addr) {
-		debugPrintln("Entering interrruptIOWRITE");
 		//Find device
 		DeviceInfo wantedDevice = findDevice(devID);
 		
@@ -646,7 +644,6 @@ public class SOS implements CPU.TrapHandler
 	 */
 	private void syscallOpen()
 	{
-		debugPrintln("Entering syscallOpen");
 		int deviceID = m_CPU.POP();
 		
 		// Check to see that device exists
@@ -684,7 +681,6 @@ public class SOS implements CPU.TrapHandler
 	 */
 	private void syscallClose()
 	{
-		debugPrintln("Entering syscallClose");
 		int deviceID = m_CPU.POP();
 		
 		// Check for device existence
@@ -968,7 +964,6 @@ public class SOS implements CPU.TrapHandler
             {
                 this.registers[i] = regs[i];
             }
-            debugPrintln(m_currProcess + " saved");
         }//save
          
         /**
