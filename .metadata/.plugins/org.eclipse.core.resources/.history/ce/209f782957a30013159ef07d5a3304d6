@@ -165,29 +165,6 @@ public class SOS implements CPU.TrapHandler
         m_devices.add(new DeviceInfo(dev, id));
     }//registerDevice
 
-	/**
-	 * findDevice
-	 * 
-	 * Finds a device's information from within the m_devices vector
-	 * 
-	 * @param id of the device
-	 * @return the DeviceInfo object of the device
-	 */
-	private DeviceInfo findDevice(int id)
-	{
-		for(DeviceInfo device : m_devices)
-			if(device.getId() == id)
-				return device;
-		return null;
-		
-	}//findDevice
-    
-
-	/*
-	 * ======================================================================
-	 * Process Management Methods
-	 * ----------------------------------------------------------------------
-	 */
     
     /**
      * selectBlockedProcess
@@ -219,6 +196,12 @@ public class SOS implements CPU.TrapHandler
 
         return selected;
     }//selectBlockedProcess
+
+	/*
+	 * ======================================================================
+	 * Process Management Methods
+	 * ----------------------------------------------------------------------
+	 */
     
     
     /**
@@ -358,6 +341,21 @@ public class SOS implements CPU.TrapHandler
         debugPrintln("Switched to process " + m_currProcess.getProcessId());
     }//scheduleNewProcess
 
+    /**
+     * addProgram
+     *
+     * registers a new program with the simulated OS that can be used when the
+     * current process makes an Exec system call.  (Normally the program is
+     * specified by the process via a filename but this is a simulation so the
+     * calling process doesn't actually care what program gets loaded.)
+     *
+     * @param prog  the program to add
+     *
+     */
+    public void addProgram(Program prog)
+    {
+        m_programs.add(prog);
+    }//addProgram
     
 	/**
 	 * createProcess
@@ -418,29 +416,6 @@ public class SOS implements CPU.TrapHandler
 	 * ----------------------------------------------------------------------
 	 */
 
-
-    /**
-     * addProgram
-     *
-     * registers a new program with the simulated OS that can be used when the
-     * current process makes an Exec system call.  (Normally the program is
-     * specified by the process via a filename but this is a simulation so the
-     * calling process doesn't actually care what program gets loaded.)
-     *
-     * @param prog  the program to add
-     *
-     */
-    public void addProgram(Program prog)
-    {
-        m_programs.add(prog);
-    }//addProgram
-	
-	/*
-	 * ======================================================================
-	 * Interrupt Handlers
-	 * ----------------------------------------------------------------------
-	 */
-	
 	/**
 	 * interruptIllegalMemoryAccess
 	 * 
@@ -481,6 +456,70 @@ public class SOS implements CPU.TrapHandler
 		m_CPU.printInstr(instr);
 		System.exit(0);
 	}//interruptIllegalInstruction
+
+	// System call handler
+	@Override
+	public void systemCall() 
+	{
+		switch (m_CPU.POP()) 
+		{
+		case SYSCALL_EXIT:
+			SYSCALL_EXIT();
+			break;
+		case SYSCALL_OUTPUT:
+			SYSCALL_OUTPUT();
+			break;
+		case SYSCALL_GETPID:
+			SYSCALL_GETPID();
+			break;
+		case SYSCALL_OPEN:
+			syscallOpen();
+			break;
+		case SYSCALL_CLOSE:
+			syscallClose();
+			break;
+		case SYSCALL_READ:
+			syscallRead();
+			break;
+		case SYSCALL_WRITE:
+			syscallWrite();
+			break;
+		case SYSCALL_EXEC:
+			syscallExec();
+			break;
+		case SYSCALL_YIELD:
+			syscallYield();
+			break;
+		case SYSCALL_COREDUMP:
+			SYSCALL_COREDUMP();
+			break;
+			
+		}
+	}//systemCall
+	
+	
+	/**
+	 * findDevice
+	 * 
+	 * Finds a device's information from within the m_devices vector
+	 * 
+	 * @param id of the device
+	 * @return the DeviceInfo object of the device
+	 */
+	private DeviceInfo findDevice(int id)
+	{
+		for(DeviceInfo device : m_devices)
+			if(device.getId() == id)
+				return device;
+		return null;
+		
+	}//findDevice
+	
+	/*
+	 * ======================================================================
+	 * Interrupt Handlers
+	 * ----------------------------------------------------------------------
+	 */
 	
 	@Override
 	public void interruptIOReadComplete(int devID, int addr, int data) {
@@ -537,51 +576,6 @@ public class SOS implements CPU.TrapHandler
 			m_CPU.PUSH(ERROR_DEVICE_EXISTENCE);
 	}//interruptIOWriteComplete
 	
-	
-	/*
-	 * ======================================================================
-	 * System Calls
-	 * ----------------------------------------------------------------------
-	 */
-	
-	// System call handler
-	@Override
-	public void systemCall() 
-	{
-		switch (m_CPU.POP()) 
-		{
-		case SYSCALL_EXIT:
-			SYSCALL_EXIT();
-			break;
-		case SYSCALL_OUTPUT:
-			SYSCALL_OUTPUT();
-			break;
-		case SYSCALL_GETPID:
-			SYSCALL_GETPID();
-			break;
-		case SYSCALL_OPEN:
-			syscallOpen();
-			break;
-		case SYSCALL_CLOSE:
-			syscallClose();
-			break;
-		case SYSCALL_READ:
-			syscallRead();
-			break;
-		case SYSCALL_WRITE:
-			syscallWrite();
-			break;
-		case SYSCALL_EXEC:
-			syscallExec();
-			break;
-		case SYSCALL_YIELD:
-			syscallYield();
-			break;
-		case SYSCALL_COREDUMP:
-			SYSCALL_COREDUMP();
-			break;
-		}
-	}//systemCall
 	
 	/**
 	 * SYSCALL_EXIT
@@ -863,7 +857,12 @@ public class SOS implements CPU.TrapHandler
 		SYSCALL_EXIT();
 	}//SYSCALL_COREDUMP
 	
-	
+
+	/*
+	 * ======================================================================
+	 * System Calls
+	 * ----------------------------------------------------------------------
+	 */
 
     
  

@@ -165,29 +165,6 @@ public class SOS implements CPU.TrapHandler
         m_devices.add(new DeviceInfo(dev, id));
     }//registerDevice
 
-	/**
-	 * findDevice
-	 * 
-	 * Finds a device's information from within the m_devices vector
-	 * 
-	 * @param id of the device
-	 * @return the DeviceInfo object of the device
-	 */
-	private DeviceInfo findDevice(int id)
-	{
-		for(DeviceInfo device : m_devices)
-			if(device.getId() == id)
-				return device;
-		return null;
-		
-	}//findDevice
-    
-
-	/*
-	 * ======================================================================
-	 * Process Management Methods
-	 * ----------------------------------------------------------------------
-	 */
     
     /**
      * selectBlockedProcess
@@ -219,6 +196,12 @@ public class SOS implements CPU.TrapHandler
 
         return selected;
     }//selectBlockedProcess
+
+	/*
+	 * ======================================================================
+	 * Process Management Methods
+	 * ----------------------------------------------------------------------
+	 */
     
     
     /**
@@ -435,6 +418,24 @@ public class SOS implements CPU.TrapHandler
         m_programs.add(prog);
     }//addProgram
 	
+	
+	/**
+	 * findDevice
+	 * 
+	 * Finds a device's information from within the m_devices vector
+	 * 
+	 * @param id of the device
+	 * @return the DeviceInfo object of the device
+	 */
+	private DeviceInfo findDevice(int id)
+	{
+		for(DeviceInfo device : m_devices)
+			if(device.getId() == id)
+				return device;
+		return null;
+		
+	}//findDevice
+	
 	/*
 	 * ======================================================================
 	 * Interrupt Handlers
@@ -538,6 +539,9 @@ public class SOS implements CPU.TrapHandler
 	}//interruptIOWriteComplete
 	
 	
+	
+	
+
 	/*
 	 * ======================================================================
 	 * System Calls
