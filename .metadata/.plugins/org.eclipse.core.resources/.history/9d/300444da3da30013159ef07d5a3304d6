@@ -23,7 +23,7 @@ public class SOS implements CPU.TrapHandler
 	 * This flag causes the SOS to print lots of potentially helpful status
 	 * messages
 	 **/
-	public static final boolean m_verbose = false;
+	public static final boolean m_verbose = true;
 
 	/**
 	 * The CPU the operating system is managing.
@@ -286,20 +286,20 @@ public class SOS implements CPU.TrapHandler
      */
     public void scheduleNewProcess()
     {
-    	printProcessTable();
     	// Check to see if there are no more processes
         if(m_processes.size() == 0)
         {
         	debugPrintln("Schedule new process syscall exit");
         	System.exit(ERROR_NO_PROCESSES);
+        	System.exit(0);
         }
 
         //  Check for processes
         ProcessControlBlock process = getRandomProcess();
-        if(process == null)
+        while(process == null)
         {
         	createIdleProcess();
-        	return;
+        	process = getRandomProcess();
         }
         
         //save current process's registers
@@ -353,7 +353,10 @@ public class SOS implements CPU.TrapHandler
 		{
 			debugPrintln("ERROR: not sufficient space in RAM");
 			System.exit(ERROR_NEED_MORE_SPACE);
+			System.exit(0);
 		}
+		
+		// Set base to next available position in RAM
 		if (m_currProcess != null)
 			m_currProcess.save(m_CPU);
 
@@ -534,7 +537,6 @@ public class SOS implements CPU.TrapHandler
 			ProcessControlBlock waitingProc = selectBlockedProcess(wantedDevice.device, SYSCALL_WRITE, addr);
 			waitingProc.unblock();
 			
-			//Perform switch and push success code to waiting process
 			m_currProcess.save(m_CPU);
 			waitingProc.restore(m_CPU);
 			m_CPU.PUSH(SUCCESS_CODE);
@@ -547,6 +549,26 @@ public class SOS implements CPU.TrapHandler
 			m_CPU.PUSH(ERROR_DEVICE_EXISTENCE);
 	}//interruptIOWriteComplete
 	
+	/**
+	 * pushToNotCurrentStack
+	 * 
+	 * Pushes data to the RAM if it is not the current process' stack that should be pushed to
+	 * 
+	 * @param pcb The process whose stack we are looking for
+	 * @param data the information being pushed to the stack
+	 */
+	public void pushToNotCurrentStack(ProcessControlBlock pcb, int data)
+	{
+		int sp = pcb.getRegisterValue(m_CPU.SP);
+		
+		//Check to see if the SP is valid
+		if(sp > pcb.getRegisterValue(m_CPU.BASE))
+		{
+			//Set the SP to new value and write the data
+			pcb.setRegisterValue(m_CPU.SP, sp+1);
+			m_RAM.write(sp+1, data);
+		}
+	}
 	
 	/**
 	 * SYSCALL_EXIT
@@ -602,12 +624,7 @@ public class SOS implements CPU.TrapHandler
 					m_CPU.PUSH(SUCCESS_CODE);
 				}
 				else
-				{
-					deviceIn.addProcess(m_currProcess);
-					m_currProcess.block(m_CPU, deviceIn.getDevice(), SYSCALL_OPEN, 0);
-					m_CPU.PUSH(SUCCESS_CODE);
-					scheduleNewProcess();
-				}
+					m_currProcess.block(m_CPU, deviceIn.device, SYSCALL_OPEN, 0);
 			}
 			else
 				 m_CPU.PUSH(ERROR_DEVICE_OPEN);
@@ -633,14 +650,13 @@ public class SOS implements CPU.TrapHandler
 			//Check if device open
 			if(deviceIn.procs.contains(m_currProcess))
 			{
-				deviceIn.removeProcess(m_currProcess);
+				m_CPU.PUSH(SUCCESS_CODE);
+				deviceIn.procs.remove(m_currProcess);
 				
 				//Find out if there is another process waiting for this device and unblock it if yes
-				ProcessControlBlock waitingProc = selectBlockedProcess(deviceIn.getDevice(), SYSCALL_OPEN, 0);
+				ProcessControlBlock waitingProc = selectBlockedProcess(deviceIn.device, SYSCALL_OPEN, 0);
 				if(waitingProc != null)
 					waitingProc.unblock();
-				
-				m_CPU.PUSH(SUCCESS_CODE);
 			}
 			else
 				m_CPU.PUSH(ERROR_DEVICE_NOT_OPEN);
@@ -665,17 +681,17 @@ public class SOS implements CPU.TrapHandler
 		if(deviceIn != null)
 		{
 			//Check to see if device is open
-			if(deviceIn.containsProcess(m_currProcess))
+			if(deviceIn.procs.contains(m_currProcess))
 			{
 				//Check if device readable
 				if(deviceIn.device.isReadable())
 				{
 					if(deviceIn.device.isAvailable())
 					{
-						deviceIn.device.read(address);
+						m_CPU.PUSH(address);
 					
 						//Now block and wait for it to come back
-						m_currProcess.block(m_CPU, deviceIn.getDevice(), SYSCALL_READ, address);
+						m_currProcess.block(m_CPU, deviceIn.device, SYSCALL_READ, address);
 						scheduleNewProcess();
 					}
 					else
@@ -683,7 +699,7 @@ public class SOS implements CPU.TrapHandler
 						m_CPU.PUSH(deviceID);
 						m_CPU.PUSH(address);
 						m_CPU.PUSH(SYSCALL_READ);
-						m_CPU.setPC(m_CPU.getPC() - CPU.INSTRSIZE);
+						m_CPU.setPC(m_CPU.getPC() - m_CPU.INSTRSIZE);
 						scheduleNewProcess();
 					}
 				}

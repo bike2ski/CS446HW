@@ -23,7 +23,7 @@ public class SOS implements CPU.TrapHandler
 	 * This flag causes the SOS to print lots of potentially helpful status
 	 * messages
 	 **/
-	public static final boolean m_verbose = false;
+	public static final boolean m_verbose = true;
 
 	/**
 	 * The CPU the operating system is managing.
@@ -672,10 +672,10 @@ public class SOS implements CPU.TrapHandler
 				{
 					if(deviceIn.device.isAvailable())
 					{
-						deviceIn.device.read(address);
+						m_CPU.PUSH(address);
 					
 						//Now block and wait for it to come back
-						m_currProcess.block(m_CPU, deviceIn.getDevice(), SYSCALL_READ, address);
+						m_currProcess.block(m_CPU, deviceIn.device, SYSCALL_READ, address);
 						scheduleNewProcess();
 					}
 					else
