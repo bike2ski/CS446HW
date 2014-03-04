@@ -481,7 +481,19 @@ public class SOS implements CPU.TrapHandler
 		m_CPU.printInstr(instr);
 		System.exit(0);
 	}//interruptIllegalInstruction
-	
+
+	/**
+	 * interruptIOReadComplete
+	 * 
+	 * This method handles interrupts due to reads completing
+	 * 
+	 * @param devID
+	 * 			The id of the device
+	 * @param addr
+	 * 			The address the interrupt is coming from
+	 * @param data
+	 * 			The data that is being read from the device
+	 */
 	@Override
 	public void interruptIOReadComplete(int devID, int addr, int data) {
 		debugPrintln("Entering interruptIOREAD");
@@ -511,6 +523,16 @@ public class SOS implements CPU.TrapHandler
 		}
 	}//InterrruptIOReadComplete
 
+	/**
+	 * interruptIOWriteComplete
+	 * 
+	 * This method handles interrupts due to writes completing on devices
+	 * 
+	 * @param devID
+	 * 			The id of the device
+	 * @param addr
+	 * 			The address that the interrupt came from
+	 */
 	@Override
 	public void interruptIOWriteComplete(int devID, int addr) {
 		debugPrintln("Entering interrruptIOWRITE");
@@ -544,7 +566,11 @@ public class SOS implements CPU.TrapHandler
 	 * ----------------------------------------------------------------------
 	 */
 	
-	// System call handler
+	/**
+	 * systemCall
+	 * 
+	 * The system call handler
+	 */
 	@Override
 	public void systemCall() 
 	{
@@ -628,7 +654,7 @@ public class SOS implements CPU.TrapHandler
 		if(deviceIn != null)
 		{
 			//Check to see if its already open
-			if(!deviceIn.procs.contains(m_currProcess))
+			if(!deviceIn.containsProcess(m_currProcess))
 			{
 				//Check to make sure device shareable or unused
 				if(deviceIn.unused() || (deviceIn.procs.size() > 0 && deviceIn.device.isSharable()))
@@ -666,7 +692,7 @@ public class SOS implements CPU.TrapHandler
 		if(deviceIn != null)
 		{
 			//Check if device open
-			if(deviceIn.procs.contains(m_currProcess))
+			if(deviceIn.containsProcess(m_currProcess))
 			{
 				deviceIn.removeProcess(m_currProcess);
 				
@@ -749,7 +775,7 @@ public class SOS implements CPU.TrapHandler
 		if(deviceIn != null)
 		{
 			//Check if device open
-			if(deviceIn.procs.contains(m_currProcess))
+			if(deviceIn.containsProcess(m_currProcess))
 			{
 				//Check if device writeable
 				if(deviceIn.device.isWriteable())
@@ -853,7 +879,9 @@ public class SOS implements CPU.TrapHandler
        scheduleNewProcess();
     }//syscallYield
 	
-	
+	/**
+	 * Process failure leads to this
+	 */
 	private void SYSCALL_COREDUMP() 
 	{
 		m_CPU.regDump();
