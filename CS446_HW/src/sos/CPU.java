@@ -51,6 +51,7 @@ public class CPU implements Runnable{
     public static final int INSTRSIZE = 4; // number of ints in a single instr +
                                            // args. (Set to a fixed value for
                                            // simplicity.)
+    public static final int CLOCK_FREQ = 5; // number of CPU cycles between each clock interrupt
 
     // ======================================================================
     // Member variables
@@ -76,6 +77,11 @@ public class CPU implements Runnable{
      * This is a reference to the CPU's interrupt controller
      */
     private InterruptController m_IC;
+    
+    /**
+     * Number of CPU cycles elapsed in Simulation
+     */
+    private int m_ticks;
 
     // ======================================================================
     // Methods
@@ -138,6 +144,28 @@ public class CPU implements Runnable{
      */
     public int[] getRegisters() {
         return m_registers;
+    }
+    
+    /**
+     * getTicks
+     * 
+     * @return number of CPU cycles elapsed in simulation
+     */
+    public int getTicks()
+    {
+    	return m_ticks;
+    }
+    
+    /**
+     * addTicks
+     * 
+     * adds a specified number to m_ticks
+     * 
+     * @param numTicks - the number of CPU cycles to add
+     */
+    public void addTicks(int numTicks)
+    {
+    	m_ticks += numTicks;
     }
 
     /**
@@ -257,6 +285,7 @@ public class CPU implements Runnable{
         void systemCall();
         public void interruptIOReadComplete(int devID, int addr, int data);
         public void interruptIOWriteComplete(int devID, int addr);
+        void interruptClock();
     };//interface TrapHandler
 
     /**
@@ -391,6 +420,12 @@ public class CPU implements Runnable{
         	
         	//Check for an IO interrupt
         	checkForIOInterrupt();
+            //Check to see if m_ticks a mult of clk_freq
+            if((m_ticks % CLOCK_FREQ) == 0)
+            {
+            	// If so, generate a clock interrupt
+            	m_TH.interruptClock();
+            }
             // Get instructions
             int nextInstr[] = m_RAM.fetch(getPC());
 
@@ -491,6 +526,9 @@ public class CPU implements Runnable{
             
             // Update PC after switch
             setPC(m_registers[PC] + INSTRSIZE);
+            
+            // increment m_ticks
+            addTicks(1);
             
         }//while(TRUE)
     }// run
