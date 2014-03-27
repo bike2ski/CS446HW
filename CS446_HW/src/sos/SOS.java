@@ -310,7 +310,7 @@ public class SOS implements CPU.TrapHandler
     	if(!m_currProcess.isBlocked() && m_processes.contains(m_currProcess))
     	{
     		newProc = m_currProcess;
-    		longestAvgStarve = newProc.avgStarve + 200;
+    		longestAvgStarve = newProc.avgStarve + 100;
     	}
     	for(ProcessControlBlock pi : m_processes)
     	{
@@ -380,6 +380,7 @@ public class SOS implements CPU.TrapHandler
         	return;
         }
         
+        //If the current process is not the new process, save all the data, and restore the new one
         if(process != m_currProcess){
         	//save current process's registers
         	m_currProcess.save(m_CPU);
@@ -388,6 +389,7 @@ public class SOS implements CPU.TrapHandler
         	m_currProcess.restore(m_CPU);
         }
         
+        //If the current process is the idle process, remove it
         if(m_currProcess.processId == 999)
         {
         	SYSCALL_EXIT();
@@ -448,6 +450,20 @@ public class SOS implements CPU.TrapHandler
 		
 		debugPrintln("New program loaded into RAM at " + m_CPU.getBASE() + " with process ID " + m_currProcess.getProcessId());
 	}// createProcess
+	
+	/**
+	 * pushToOtherProc
+	 * 
+	 * Pushes data to a location on a non-running process
+	 * 	Optimization
+	 * 
+	 * @param addr the address to write data to
+	 * @param data the data to write
+	 */
+	public void pushToOtherProc(int addr, int data)
+	{
+		m_RAM.write(addr, data);
+	}
 
 
 	/*
@@ -543,14 +559,17 @@ public class SOS implements CPU.TrapHandler
 			// Find the waiting process and unblock it
 			ProcessControlBlock waitingProc = selectBlockedProcess(wantedDevice.device, SYSCALL_READ, addr);
 			waitingProc.unblock();
-			m_currProcess.save(m_CPU);
 			
-			//Perform switch to push data and success code to waiting process
-			waitingProc.restore(m_CPU);
-			m_CPU.PUSH(data);
-			m_CPU.PUSH(SUCCESS_CODE);
-			waitingProc.save(m_CPU);
-			m_currProcess.restore(m_CPU);
+			//Find the position of the waitingProc's stack
+			int otherSP = waitingProc.getRegisterValue(m_CPU.SP);
+			
+			//Write a success code to the correct position in the waiting proc's stack
+			waitingProc.setRegisterValue(m_CPU.SP, otherSP + 1);
+			otherSP++;
+			pushToOtherProc(otherSP, data);
+			waitingProc.setRegisterValue(m_CPU.SP, otherSP + 1);
+			otherSP++;
+			pushToOtherProc(otherSP, SUCCESS_CODE);
 			
 			debugPrintln(waitingProc + " moved to ready state");
 		}
@@ -582,12 +601,13 @@ public class SOS implements CPU.TrapHandler
 			ProcessControlBlock waitingProc = selectBlockedProcess(wantedDevice.device, SYSCALL_WRITE, addr);
 			waitingProc.unblock();
 			
-			//Perform switch and push success code to waiting process
-			m_currProcess.save(m_CPU);
-			waitingProc.restore(m_CPU);
-			m_CPU.PUSH(SUCCESS_CODE);
-			waitingProc.save(m_CPU);
-			m_currProcess.restore(m_CPU);
+			//Find the position of the waitingProc's stack
+			int otherSP = waitingProc.getRegisterValue(m_CPU.SP);
+			
+			//Write a success code to the correct position in the waiting proc's stack
+			waitingProc.setRegisterValue(m_CPU.SP, otherSP + 1);
+			otherSP++;
+			pushToOtherProc(otherSP, SUCCESS_CODE);
 			
 			debugPrintln(waitingProc + " moved to ready state");
 		}
@@ -936,12 +956,6 @@ public class SOS implements CPU.TrapHandler
 	}//SYSCALL_COREDUMP
 	
 	
-
-    
- 
-
-	
-	
 	/**
      * class ProcessControlBlock
      *
@@ -1066,11 +1080,6 @@ public class SOS implements CPU.TrapHandler
         {
             return lastReadyTime;
         }
-        
-        public void runTime()
-        {
-        	
-        }
 
         /**
          * save
@@ -1081,7 +1090,7 @@ public class SOS implements CPU.TrapHandler
          */
         public void save(CPU cpu)
         {
-            //A context switch is expensive.  We simluate that here by 
+            //A context switch is expensive.  We simulate that here by 
             //adding ticks to m_CPU
             m_CPU.addTicks(SAVE_LOAD_TIME);
             
