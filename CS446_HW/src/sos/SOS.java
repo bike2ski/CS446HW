@@ -23,7 +23,7 @@ public class SOS implements CPU.TrapHandler
 	 * This flag causes the SOS to print lots of potentially helpful status
 	 * messages
 	 **/
-	public static final boolean m_verbose = true;
+	public static final boolean m_verbose = false;
 
 	/**
 	 * The CPU the operating system is managing.
@@ -294,6 +294,38 @@ public class SOS implements CPU.TrapHandler
         m_processes.remove(m_currProcess);
         debugPrintln("Program Removed from RAM " + m_currProcess.getProcessId() + " at " + m_CPU.getBASE());
     }//removeCurrentProcess
+    
+    /**
+     * getNextProcess
+     * 
+     * selects the next process to be run based off a variety of criteria
+     * 
+     * @return a reference to a ProcessControlBlock or null if there is no non-blocked process
+     */
+    ProcessControlBlock getNextProcess()
+    {
+    	ProcessControlBlock newProc = null;
+    	double longestAvgStarve = -1;
+    	
+    	if(!m_currProcess.isBlocked() && m_processes.contains(m_currProcess))
+    	{
+    		newProc = m_currProcess;
+    		longestAvgStarve = newProc.avgStarve + 200;
+    	}
+    	for(ProcessControlBlock pi : m_processes)
+    	{
+    		if(!pi.isBlocked())
+    		{
+    			if(pi.avgStarve > longestAvgStarve)
+    			{
+    				longestAvgStarve = pi.avgStarve;
+    				newProc = pi;
+    			}
+    		}
+    	}
+    	return newProc;
+    	
+    }//getNextProcess
 
     /**
      * getRandomProcess
@@ -341,19 +373,27 @@ public class SOS implements CPU.TrapHandler
         }
 
         //  Check for processes
-        ProcessControlBlock process = getRandomProcess();
+        ProcessControlBlock process = getNextProcess();
         if(process == null)
         {
         	createIdleProcess();
         	return;
         }
         
-        //save current process's registers
-        m_currProcess.save(m_CPU);
-    	//Set the new process and restore its registers
-    	m_currProcess = process;
-        m_currProcess.restore(m_CPU);
+        if(process != m_currProcess){
+        	//save current process's registers
+        	m_currProcess.save(m_CPU);
+        	//Set the new process and restore its registers
+        	m_currProcess = process;
+        	m_currProcess.restore(m_CPU);
+        }
+        
+        if(m_currProcess.processId == 999)
+        {
+        	SYSCALL_EXIT();
+        }
         debugPrintln("Switched to process " + m_currProcess.getProcessId());
+        debugPrintln(m_currProcess.overallAvgStarve() + " OVERALLAVGSTARVETIME");
     }//scheduleNewProcess
 
     
@@ -743,7 +783,6 @@ public class SOS implements CPU.TrapHandler
 					
 						//Now block and wait for it to come back
 						m_currProcess.block(m_CPU, deviceIn.getDevice(), SYSCALL_READ, address);
-						scheduleNewProcess();
 					}
 					else
 					{
@@ -751,8 +790,8 @@ public class SOS implements CPU.TrapHandler
 						m_CPU.PUSH(address);
 						m_CPU.PUSH(SYSCALL_READ);
 						m_CPU.setPC(m_CPU.getPC() - CPU.INSTRSIZE);
-						scheduleNewProcess();
 					}
+					scheduleNewProcess();
 				}
 				else
 					m_CPU.PUSH(ERROR_DEVICE_NOT_READABLE);
@@ -793,7 +832,6 @@ public class SOS implements CPU.TrapHandler
 					
 						//Block the process and wait for write to finish
 						m_currProcess.block(m_CPU, deviceIn.device, SYSCALL_WRITE, address);
-						scheduleNewProcess();
 					}
 					else
 					{
@@ -803,8 +841,8 @@ public class SOS implements CPU.TrapHandler
 						m_CPU.PUSH(data);
 						m_CPU.PUSH(SYSCALL_WRITE);
 						m_CPU.setPC(m_CPU.getPC() - CPU.INSTRSIZE);
-						scheduleNewProcess();
 					}
+					scheduleNewProcess();
 				}
 				else
 					m_CPU.PUSH(ERROR_DEVICE_NOT_WRITEABLE);
@@ -967,6 +1005,18 @@ public class SOS implements CPU.TrapHandler
          * Used to store the average starve time for this process
          */
         private double avgStarve = 0;
+        
+        /**
+         * Used to store the average run time of this process
+         */
+        private int runTime = 0;
+        
+        /**
+         * Used to store process priority
+         * 
+         * Priority levels are 1 through 5, with 5 the lowest, 1 the highest priority
+         */
+        private int priority = 99;
 
         /**
          * constructor
@@ -977,6 +1027,28 @@ public class SOS implements CPU.TrapHandler
         public ProcessControlBlock(int pid)
         {
             this.processId = pid;
+        }
+        
+        /**
+         * getPriority
+         * 
+         * @return the priority of the process
+         */
+        public int getPriority()
+        {
+        	return priority;
+        }
+        
+        /**
+         * setPriority
+         * 
+         * Sets the priority level of the process
+         * 
+         * @param priority level of the process
+         */
+        public void setPriority(int priority)
+        {
+        	this.priority = priority;
         }
 
         /**
@@ -994,8 +1066,12 @@ public class SOS implements CPU.TrapHandler
         {
             return lastReadyTime;
         }
-
         
+        public void runTime()
+        {
+        	
+        }
+
         /**
          * save
          *
@@ -1144,6 +1220,29 @@ public class SOS implements CPU.TrapHandler
         }//isBlockedForDevice
         
         /**
+         * overallAvgNumReady
+         * 
+         * @return the overall average number of ready states for all currently running proccesses
+         */
+        public double overallAvgNumReady()
+        {
+        	double result = 0.0;
+        	int count = 0;
+        	for(ProcessControlBlock pi : m_processes)
+        	{
+        		if(pi.numReady > 0)
+        		{
+        			result = result + pi.numReady;
+        		}
+        	}
+        	if(count > 0)
+        	{
+        		result = result / count;
+        	}
+        	return result;
+        }//overallAvgNumReady
+        
+        /**
          * overallAvgStarve
          *
          * @return the overall average starve time for all currently running
@@ -1169,7 +1268,6 @@ public class SOS implements CPU.TrapHandler
             
             return result;
         }//overallAvgStarve
-         
          
         /**
          * compareTo              
@@ -1225,6 +1323,8 @@ public class SOS implements CPU.TrapHandler
             this.registers[idx] = val;
         }//setRegisterValue
          
+    
+
         /**
          * toString       **DEBUGGING**
          *
@@ -1359,6 +1459,5 @@ public class SOS implements CPU.TrapHandler
         }
         
     }//class DeviceInfo
-
 };// class SOS
 

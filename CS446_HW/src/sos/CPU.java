@@ -51,7 +51,6 @@ public class CPU implements Runnable{
     public static final int INSTRSIZE = 4; // number of ints in a single instr +
                                            // args. (Set to a fixed value for
                                            // simplicity.)
-    public static final int CLOCK_FREQ = 5; // number of CPU cycles between each clock interrupt
 
     // ======================================================================
     // Member variables
@@ -59,7 +58,7 @@ public class CPU implements Runnable{
     /**
      * specifies whether the CPU should output details of its work
      **/
-    private boolean m_verbose = true;
+    private boolean m_verbose = false;
 
     /**
      * This array contains all the registers on the "chip".
@@ -79,7 +78,12 @@ public class CPU implements Runnable{
     private InterruptController m_IC;
     
     /**
-     * Number of CPU cycles elapsed in Simulation
+     * How often there is a clock interrupt
+     */
+    private int CLOCK_FREQ = 5;
+    
+    /**
+     * How many CPU cycles have occurred in the simulation
      */
     private int m_ticks;
 
@@ -222,6 +226,14 @@ public class CPU implements Runnable{
     public void registerTrapHandler(TrapHandler th)
     {
         m_TH = th;
+    }
+    
+    private void checkForClockInterrupt()
+    {
+    	if((m_ticks % CLOCK_FREQ) == 0)
+    	{
+    		m_TH.interruptClock();
+    	}
     }
     
     /**
@@ -420,12 +432,6 @@ public class CPU implements Runnable{
         	
         	//Check for an IO interrupt
         	checkForIOInterrupt();
-            //Check to see if m_ticks a mult of clk_freq
-            if((m_ticks % CLOCK_FREQ) == 0)
-            {
-            	// If so, generate a clock interrupt
-            	m_TH.interruptClock();
-            }
             // Get instructions
             int nextInstr[] = m_RAM.fetch(getPC());
 
@@ -524,11 +530,11 @@ public class CPU implements Runnable{
 
             }//SWITCH
             
+            ++m_ticks;
+            checkForClockInterrupt();
+            
             // Update PC after switch
             setPC(m_registers[PC] + INSTRSIZE);
-            
-            // increment m_ticks
-            addTicks(1);
             
         }//while(TRUE)
     }// run
