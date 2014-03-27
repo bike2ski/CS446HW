@@ -23,8 +23,8 @@ public class SOS implements CPU.TrapHandler
 	 * This flag causes the SOS to print lots of potentially helpful status
 	 * messages
 	 **/
-	public static final boolean m_verbose = false;
-
+	public static final boolean m_verbose = true;
+	
 	/**
 	 * The CPU the operating system is managing.
 	 **/
@@ -312,6 +312,8 @@ public class SOS implements CPU.TrapHandler
     		newProc = m_currProcess;
     		longestAvgStarve = newProc.avgStarve + 100;
     	}
+    	
+    	//Iterate through processes and choose the one with longest avg starve time
     	for(ProcessControlBlock pi : m_processes)
     	{
     		if(!pi.isBlocked())
@@ -324,7 +326,6 @@ public class SOS implements CPU.TrapHandler
     		}
     	}
     	return newProc;
-    	
     }//getNextProcess
 
     /**
@@ -563,6 +564,15 @@ public class SOS implements CPU.TrapHandler
 			//Find the position of the waitingProc's stack
 			int otherSP = waitingProc.getRegisterValue(m_CPU.SP);
 			
+			/*
+			//Perform switch to push data and success code to waiting process
+			waitingProc.restore(m_CPU);
+			m_CPU.PUSH(data);
+			m_CPU.PUSH(SUCCESS_CODE);
+			waitingProc.save(m_CPU);
+			m_currProcess.restore(m_CPU);
+			*/
+			
 			//Write a success code to the correct position in the waiting proc's stack
 			waitingProc.setRegisterValue(m_CPU.SP, otherSP + 1);
 			otherSP++;
@@ -608,6 +618,15 @@ public class SOS implements CPU.TrapHandler
 			waitingProc.setRegisterValue(m_CPU.SP, otherSP + 1);
 			otherSP++;
 			pushToOtherProc(otherSP, SUCCESS_CODE);
+			
+			/*
+			//Perform switch and push success code to waiting process
+			m_currProcess.save(m_CPU);
+			waitingProc.restore(m_CPU);
+			m_CPU.PUSH(SUCCESS_CODE);
+			waitingProc.save(m_CPU);
+			m_currProcess.restore(m_CPU);
+			*/
 			
 			debugPrintln(waitingProc + " moved to ready state");
 		}
