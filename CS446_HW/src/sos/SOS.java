@@ -23,7 +23,7 @@ public class SOS implements CPU.TrapHandler
 	 * This flag causes the SOS to print lots of potentially helpful status
 	 * messages
 	 **/
-	public static final boolean m_verbose = true;
+	public static final boolean m_verbose = false;
 	
 	/**
 	 * The CPU the operating system is managing.
@@ -306,7 +306,9 @@ public class SOS implements CPU.TrapHandler
     {
     	ProcessControlBlock newProc = null;
     	double longestAvgStarve = -1;
-    	
+    	int overallRunTime = 0;
+    	if(m_currProcess != null)
+    		overallRunTime = m_currProcess.overallAvgRunTime();
     	if(!m_currProcess.isBlocked() && m_processes.contains(m_currProcess))
     	{
     		newProc = m_currProcess;
@@ -318,11 +320,19 @@ public class SOS implements CPU.TrapHandler
     	{
     		if(!pi.isBlocked())
     		{
-    			if(pi.avgStarve > longestAvgStarve)
+    			if(pi.avgRunTime() < overallRunTime)
     			{
-    				longestAvgStarve = pi.avgStarve;
-    				newProc = pi;
+    				if(pi.avgStarve > longestAvgStarve)
+    				{
+    					longestAvgStarve = pi.avgStarve;
+    					newProc = pi;
+    				}
     			}
+    			else if(pi.avgStarve > longestAvgStarve)
+				{
+					longestAvgStarve = pi.avgStarve;
+					newProc = pi;
+				}
     		}
     	}
     	return newProc;
@@ -374,7 +384,7 @@ public class SOS implements CPU.TrapHandler
         }
 
         //  Check for processes
-        ProcessControlBlock process = getNextProcess();
+        ProcessControlBlock process = getRandomProcess();
         if(process == null)
         {
         	createIdleProcess();
@@ -564,15 +574,6 @@ public class SOS implements CPU.TrapHandler
 			//Find the position of the waitingProc's stack
 			int otherSP = waitingProc.getRegisterValue(m_CPU.SP);
 			
-			/*
-			//Perform switch to push data and success code to waiting process
-			waitingProc.restore(m_CPU);
-			m_CPU.PUSH(data);
-			m_CPU.PUSH(SUCCESS_CODE);
-			waitingProc.save(m_CPU);
-			m_currProcess.restore(m_CPU);
-			*/
-			
 			//Write a success code to the correct position in the waiting proc's stack
 			waitingProc.setRegisterValue(m_CPU.SP, otherSP + 1);
 			otherSP++;
@@ -618,15 +619,6 @@ public class SOS implements CPU.TrapHandler
 			waitingProc.setRegisterValue(m_CPU.SP, otherSP + 1);
 			otherSP++;
 			pushToOtherProc(otherSP, SUCCESS_CODE);
-			
-			/*
-			//Perform switch and push success code to waiting process
-			m_currProcess.save(m_CPU);
-			waitingProc.restore(m_CPU);
-			m_CPU.PUSH(SUCCESS_CODE);
-			waitingProc.save(m_CPU);
-			m_currProcess.restore(m_CPU);
-			*/
 			
 			debugPrintln(waitingProc + " moved to ready state");
 		}
@@ -1040,16 +1032,14 @@ public class SOS implements CPU.TrapHandler
         private double avgStarve = 0;
         
         /**
-         * Used to store the average run time of this process
+         * Used to store the total run time of this process
          */
-        private int runTime = 0;
+        private int totalRunTime = 0;
         
-        /**
-         * Used to store process priority
-         * 
-         * Priority levels are 1 through 5, with 5 the lowest, 1 the highest priority
-         */
-        private int priority = 99;
+        private int lastStartTime = 0;
+        
+        private int lastEndTime = 0;
+        
 
         /**
          * constructor
@@ -1060,28 +1050,6 @@ public class SOS implements CPU.TrapHandler
         public ProcessControlBlock(int pid)
         {
             this.processId = pid;
-        }
-        
-        /**
-         * getPriority
-         * 
-         * @return the priority of the process
-         */
-        public int getPriority()
-        {
-        	return priority;
-        }
-        
-        /**
-         * setPriority
-         * 
-         * Sets the priority level of the process
-         * 
-         * @param priority level of the process
-         */
-        public void setPriority(int priority)
-        {
-        	this.priority = priority;
         }
 
         /**
@@ -1099,6 +1067,48 @@ public class SOS implements CPU.TrapHandler
         {
             return lastReadyTime;
         }
+        
+        /**
+         * avgRunTime
+         * 
+         * @return the average running time of a process
+         */
+        public int avgRunTime()
+        {
+        	if (numReady != 0)
+        		return totalRunTime / numReady;
+        	return 0;
+        }
+        
+        /**
+         * overallAvgRunTime
+         * 
+         * @return the overall average run time of all processes
+         */
+        public int overallAvgRunTime()
+        {
+        	int runTime = 0;
+        	int timesReady = 0;
+        	for(ProcessControlBlock pi : m_processes)
+        	{
+        		runTime += pi.totalRunTime;
+        		timesReady += pi.numReady;
+        	}
+        	
+        	if (timesReady != 0)
+        		return runTime / timesReady;
+        	return 0;
+        }
+        
+        /**
+         * getLastRunTime
+         * 
+         * @return the last run time of the process
+         */
+        public int getLastRunTime()
+        {
+        	return lastEndTime - lastStartTime;
+        }
 
         /**
          * save
@@ -1109,6 +1119,7 @@ public class SOS implements CPU.TrapHandler
          */
         public void save(CPU cpu)
         {
+        	lastEndTime = m_CPU.getTicks();
             //A context switch is expensive.  We simulate that here by 
             //adding ticks to m_CPU
             m_CPU.addTicks(SAVE_LOAD_TIME);
@@ -1161,6 +1172,8 @@ public class SOS implements CPU.TrapHandler
             double d_numReady = (double)numReady;
             avgStarve = avgStarve * (d_numReady - 1.0) / d_numReady;
             avgStarve = avgStarve + (starveTime * (1.0 / d_numReady));
+            
+            lastStartTime = m_CPU.getTicks();
         }//restore
          
         /**
