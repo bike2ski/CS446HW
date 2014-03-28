@@ -23,7 +23,7 @@ public class SOS implements CPU.TrapHandler
 	 * This flag causes the SOS to print lots of potentially helpful status
 	 * messages
 	 **/
-	public static final boolean m_verbose = false;
+	public static final boolean m_verbose = true;
 	
 	/**
 	 * The CPU the operating system is managing.
@@ -325,7 +325,7 @@ public class SOS implements CPU.TrapHandler
     	
     	if(!m_currProcess.isBlocked() && m_processes.contains(m_currProcess))
     	{
-    		//Acount for load/save penalties
+    		//Account for load/save penalties
     		newProc = m_currProcess;
     		longestAvgStarve = newProc.avgStarve + 100;
     		overallAvgStarve = newProc.overallAvgStarve();
@@ -339,7 +339,6 @@ public class SOS implements CPU.TrapHandler
     					pi.lastReadyTime >= avgLastReadyTime)
 				{
 					longestAvgStarve = pi.avgStarve;
-
 					newProc = pi;
 				}
     			
@@ -400,8 +399,8 @@ public class SOS implements CPU.TrapHandler
         	System.exit(ERROR_NO_PROCESSES);
         }
 
-        //  Check for processes
-        ProcessControlBlock process = getNextProcess();
+        //  Retrieve the next process
+        ProcessControlBlock process = getRandomProcess();
         if(process == null)
         {
         	createIdleProcess();
