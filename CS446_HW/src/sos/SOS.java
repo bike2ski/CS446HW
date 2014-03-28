@@ -237,7 +237,7 @@ public class SOS implements CPU.TrapHandler
                          15, 0, 0, 0 }; //TRAP
 
         //Initialize the starting position for this program
-        int baseAddr = m_nextLoadPos; //MAYBE THIS SHOULD UPDATE TO NEXT POS? &&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
+        int baseAddr = m_nextLoadPos; 
 
         //Load the program into RAM
         for(int i = 0; i < progArr.length; i++)
@@ -291,8 +291,8 @@ public class SOS implements CPU.TrapHandler
      */
     public void removeCurrentProcess()
     {
+    	printProcessTable();
         m_processes.remove(m_currProcess);
-        debugPrintln("Program Removed from RAM " + m_currProcess.getProcessId() + " at " + m_CPU.getBASE());
     }//removeCurrentProcess
     
     /**
@@ -304,23 +304,46 @@ public class SOS implements CPU.TrapHandler
      */
     ProcessControlBlock getNextProcess()
     {
+    	//The process to return
     	ProcessControlBlock newProc = null;
+    	
     	double longestAvgStarve = -1;
-    	int overallRunTime = 0;
+    	
+    	int overallAvgRunTime = 0;
+    	
+    	double overallAvgStarve = 0;
+    	
+    	long avgLastReadyTime = 0;
+    	
+    	//Check if there is a process running
     	if(m_currProcess != null)
-    		overallRunTime = m_currProcess.overallAvgRunTime();
-    	if(!m_currProcess.isBlocked() && m_processes.contains(m_currProcess))
     	{
-    		newProc = m_currProcess;
-    		longestAvgStarve = newProc.avgStarve + 100;
+    		//Get the average run time and the average ready times
+    		overallAvgRunTime = m_currProcess.overallAvgRunTime();
+    		avgLastReadyTime = m_currProcess.avgLastReadyTime();
     	}
     	
-    	//Iterate through processes and choose the one with longest avg starve time
+    	if(!m_currProcess.isBlocked() && m_processes.contains(m_currProcess))
+    	{
+    		//Acount for load/save penalties
+    		newProc = m_currProcess;
+    		longestAvgStarve = newProc.avgStarve + 100;
+    		overallAvgStarve = newProc.overallAvgStarve();
+    	}
+    	
     	for(ProcessControlBlock pi : m_processes)
     	{
     		if(!pi.isBlocked())
     		{
-    			if(pi.avgRunTime() < overallRunTime)
+    			if((pi.avgStarve >= longestAvgStarve && pi.avgStarve >= overallAvgStarve) || 
+    					pi.lastReadyTime >= avgLastReadyTime)
+				{
+					longestAvgStarve = pi.avgStarve;
+
+					newProc = pi;
+				}
+    			
+    			else if(pi.avgRunTime() >= overallAvgRunTime)
     			{
     				if(pi.avgStarve > longestAvgStarve)
     				{
@@ -328,11 +351,6 @@ public class SOS implements CPU.TrapHandler
     					newProc = pi;
     				}
     			}
-    			else if(pi.avgStarve > longestAvgStarve)
-				{
-					longestAvgStarve = pi.avgStarve;
-					newProc = pi;
-				}
     		}
     	}
     	return newProc;
@@ -375,7 +393,6 @@ public class SOS implements CPU.TrapHandler
      */
     public void scheduleNewProcess()
     {
-    	printProcessTable();
     	// Check to see if there are no more processes
         if(m_processes.size() == 0)
         {
@@ -384,7 +401,7 @@ public class SOS implements CPU.TrapHandler
         }
 
         //  Check for processes
-        ProcessControlBlock process = getRandomProcess();
+        ProcessControlBlock process = getNextProcess();
         if(process == null)
         {
         	createIdleProcess();
@@ -405,8 +422,6 @@ public class SOS implements CPU.TrapHandler
         {
         	SYSCALL_EXIT();
         }
-        debugPrintln("Switched to process " + m_currProcess.getProcessId());
-        debugPrintln(m_currProcess.overallAvgStarve() + " OVERALLAVGSTARVETIME");
     }//scheduleNewProcess
 
     
@@ -458,8 +473,6 @@ public class SOS implements CPU.TrapHandler
 		
 		//Add new process to process vector and make current process
 		m_currProcess = newProc;
-		
-		debugPrintln("New program loaded into RAM at " + m_CPU.getBASE() + " with process ID " + m_currProcess.getProcessId());
 	}// createProcess
 	
 	/**
@@ -581,8 +594,6 @@ public class SOS implements CPU.TrapHandler
 			waitingProc.setRegisterValue(m_CPU.SP, otherSP + 1);
 			otherSP++;
 			pushToOtherProc(otherSP, SUCCESS_CODE);
-			
-			debugPrintln(waitingProc + " moved to ready state");
 		}
 		else
 		{
@@ -619,8 +630,6 @@ public class SOS implements CPU.TrapHandler
 			waitingProc.setRegisterValue(m_CPU.SP, otherSP + 1);
 			otherSP++;
 			pushToOtherProc(otherSP, SUCCESS_CODE);
-			
-			debugPrintln(waitingProc + " moved to ready state");
 		}
 		else
 			m_CPU.PUSH(ERROR_DEVICE_EXISTENCE);
@@ -634,7 +643,6 @@ public class SOS implements CPU.TrapHandler
 	public void interruptClock() 
 	{
 		scheduleNewProcess();
-		debugPrintln("%%%%%%%%%%%Interrupt Clock%%%%%%%%%%%%%%%%%%");
 	}
 	
 	
@@ -1036,9 +1044,20 @@ public class SOS implements CPU.TrapHandler
          */
         private int totalRunTime = 0;
         
+        /**
+         * Stores the last time this process was started
+         */
         private int lastStartTime = 0;
         
+        /**
+         * Stores the last time this process was saved
+         */
         private int lastEndTime = 0;
+        
+        /**
+         * Stores the average running time of this process
+         */
+        private int avgRunTime = 0;
         
 
         /**
@@ -1068,6 +1087,22 @@ public class SOS implements CPU.TrapHandler
             return lastReadyTime;
         }
         
+        public long avgLastReadyTime()
+        {
+        	int count = 0;
+        	long readyTime = 0;
+        	for(ProcessControlBlock pi : m_processes)
+        	{
+        		readyTime += pi.lastReadyTime;
+        		count++;
+        	}
+        	if(count != 0)
+        	{
+        		return readyTime/count;	
+        	}
+        	else return 0;
+        }
+        
         /**
          * avgRunTime
          * 
@@ -1075,8 +1110,10 @@ public class SOS implements CPU.TrapHandler
          */
         public int avgRunTime()
         {
-        	if (numReady != 0)
-        		return totalRunTime / numReady;
+        	if (numReady != 0){
+        		avgRunTime = totalRunTime / numReady;
+        		return avgRunTime;
+        	}
         	return 0;
         }
         
@@ -1088,15 +1125,15 @@ public class SOS implements CPU.TrapHandler
         public int overallAvgRunTime()
         {
         	int runTime = 0;
-        	int timesReady = 0;
+        	int count = 0;
         	for(ProcessControlBlock pi : m_processes)
         	{
-        		runTime += pi.totalRunTime;
-        		timesReady += pi.numReady;
+        		runTime += pi.avgRunTime;
+        		count++;
         	}
         	
-        	if (timesReady != 0)
-        		return runTime / timesReady;
+        	if (count != 0)
+        		return runTime / count;
         	return 0;
         }
         
@@ -1139,6 +1176,7 @@ public class SOS implements CPU.TrapHandler
             //unblock method.
             numReady++;
             lastReadyTime = m_CPU.getTicks();
+            totalRunTime += getLastRunTime();
             
         }//save
          
@@ -1259,29 +1297,6 @@ public class SOS implements CPU.TrapHandler
 
             return false;
         }//isBlockedForDevice
-        
-        /**
-         * overallAvgNumReady
-         * 
-         * @return the overall average number of ready states for all currently running proccesses
-         */
-        public double overallAvgNumReady()
-        {
-        	double result = 0.0;
-        	int count = 0;
-        	for(ProcessControlBlock pi : m_processes)
-        	{
-        		if(pi.numReady > 0)
-        		{
-        			result = result + pi.numReady;
-        		}
-        	}
-        	if(count > 0)
-        	{
-        		result = result / count;
-        	}
-        	return result;
-        }//overallAvgNumReady
         
         /**
          * overallAvgStarve
