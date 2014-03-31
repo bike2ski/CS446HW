@@ -1,28 +1,28 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <section name="Workbench">
 	<section name="org.eclipse.ui.texteditor.FindReplaceDialog_dialogBounds">
-		<item value="305" key="DIALOG_WIDTH"/>
+		<item value="311" key="DIALOG_WIDTH"/>
 		<item value="67" key="DIALOG_Y_ORIGIN"/>
+		<item value="423" key="DIALOG_HEIGHT"/>
 		<item value="937" key="DIALOG_X_ORIGIN"/>
-		<item value="421" key="DIALOG_HEIGHT"/>
 		<item value="1|Sans|9.0|0|GTK|1|" key="DIALOG_FONT_NAME"/>
 	</section>
 	<section name="org.eclipse.ui.texteditor.FindReplaceDialog">
 		<item value="true" key="wrap"/>
-		<item value="false" key="casesensitive"/>
 		<item value="false" key="isRegEx"/>
+		<item value="false" key="casesensitive"/>
 		<item value="false" key="incremental"/>
 		<item value="false" key="wholeword"/>
-		<item value="PUSH" key="selection"/>
+		<item value="maxSt" key="selection"/>
 		<list key="findhistory">
-			<item value="PUSH"/>
-			<item value="findDevice"/>
-			<item value="find"/>
-			<item value="save"/>
-			<item value="ERROR_DEVICE_OPEN"/>
-			<item value="syscall_exit"/>
+			<item value="maxSt"/>
+			<item value="SYSCALL_EXIT"/>
+			<item value="syscall_Exit"/>
 			<item value="syscallExit"/>
-			<item value="removeCurrent"/>
+			<item value="syscallexit"/>
+			<item value="verb"/>
+			<item value="debugPrintln"/>
+			<item value="program removed from"/>
 		</list>
 		<list key="replacehistory">
 		</list>

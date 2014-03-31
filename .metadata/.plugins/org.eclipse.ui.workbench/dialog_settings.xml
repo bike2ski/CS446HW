@@ -8,8 +8,8 @@
 		<item value="345" key="DIALOG_WIDTH"/>
 		<item value="org.eclipse.ui.console.ConsoleView" key="ShowViewDialog.STORE_SELECTED_VIEW_ID"/>
 		<item value="86" key="DIALOG_Y_ORIGIN"/>
-		<item value="514" key="DIALOG_X_ORIGIN"/>
 		<item value="429" key="DIALOG_HEIGHT"/>
+		<item value="514" key="DIALOG_X_ORIGIN"/>
 		<item value="1|Sans|9.0|0|GTK|1|" key="DIALOG_FONT_NAME"/>
 		<list key="ShowViewDialog.STORE_EXPANDED_CATEGORIES_ID">
 			<item value="org.eclipse.ui"/>
