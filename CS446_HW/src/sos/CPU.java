@@ -86,6 +86,11 @@ public class CPU implements Runnable{
      * How many CPU cycles have occurred in the simulation
      */
     private int m_ticks;
+    
+    /**
+     * The memory management unit used by the CPU
+     */
+    private MMU m_MMU;
 
     // ======================================================================
     // Methods
@@ -96,13 +101,14 @@ public class CPU implements Runnable{
      * 
      * Intializes all member variables.
      */
-    public CPU(RAM ram, InterruptController control) {
+    public CPU(RAM ram, InterruptController control, MMU mmu) {
         m_registers = new int[NUMREG];
         for (int i = 0; i < NUMREG; i++) {
             m_registers[i] = 0;
         }
         m_RAM = ram;
         m_IC = control;
+        m_MMU = mmu;
     }// CPU ctor
 
     /**
@@ -225,6 +231,7 @@ public class CPU implements Runnable{
      */
     public void registerTrapHandler(TrapHandler th)
     {
+    	m_MMU.registerTrapHandler(th);
         m_TH = th;
     }
     
@@ -401,7 +408,7 @@ public class CPU implements Runnable{
     public int POP() {
         // Read from RAM at location of the stack pointer and save result into
         // specified register.
-    	int val =  m_RAM.read(m_registers[SP]);
+    	int val =  m_MMU.read(m_registers[SP]);
         m_registers[SP]--;
         return val;
     }
@@ -417,7 +424,7 @@ public class CPU implements Runnable{
     public void PUSH(int val) {
         (m_registers[SP]) = m_registers[SP] +1 ;
         // Write to RAM at location of stack pointer the value of parameter.
-        m_RAM.write(m_registers[SP], val);
+        m_MMU.write(m_registers[SP], val);
     }
 
     /**
@@ -433,7 +440,7 @@ public class CPU implements Runnable{
         	//Check for an IO interrupt
         	checkForIOInterrupt();
             // Get instructions
-            int nextInstr[] = m_RAM.fetch(getPC());
+            int nextInstr[] = m_MMU.fetch(getPC());
 
             // If in verbose mode, print the instructions
             if (m_verbose == true) {
@@ -509,14 +516,14 @@ public class CPU implements Runnable{
             	isBadAddres(m_registers[nextInstr[2]] + getBASE());
                // Store into register specified by arg1 the value stored in
                // RAM at location specified by arg2
-                m_registers[nextInstr[1]] = m_RAM.read((m_registers[nextInstr[2]] + getBASE()));
+                m_registers[nextInstr[1]] = m_MMU.read((m_registers[nextInstr[2]] + getBASE()));
                 break;
 
             case SAVE:
                 isBadAddres(m_registers[nextInstr[2]] + getBASE());
                 // Save into location specified by arg2 the value specified
                 // by arg1
-               m_RAM.write((m_registers[nextInstr[2]] + getBASE()), m_registers[nextInstr[1]]);
+               m_MMU.write((m_registers[nextInstr[2]] + getBASE()), m_registers[nextInstr[1]]);
                 break;
 
             case TRAP:
